@@ -8,14 +8,15 @@ int main(int argv, char** args)
         exit(-1);
     }
 
-    int N = (int) strtol(args[1], (char**) NULL, 10);
+    int N = atoi(args[1]);
     int M = N;
     int K = N;
 
-    double *A = (double *)malloc(N * K * sizeof(double));
-    double *B = (double *)malloc(K * M * sizeof(double));
-    double *C = (double *)malloc(N * M * sizeof(double));
+    double *A = (double *)malloc((N * K + K * M + N * M) * sizeof(double));
+    double *B = A + (N * K);
+    double *C = B + (K * M);
 
+    if (K != N) {
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < K; j++) {
             A[i * N + j] = 1 + i + j;
@@ -25,6 +26,14 @@ int main(int argv, char** args)
     for (int i = 0; i < K; i++) {
         for (int j = 0; j < M; j++) {
             B[i * K + j] = 1 + i * j;
+        }
+    }
+    } else {
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                A[i * N + j] = 1 + i + j;
+                B[i * N + j] = 1 + i * j;
+            }
         }
     }
 
@@ -44,11 +53,5 @@ int main(int argv, char** args)
     }
 
     printf("%lf", sum);
-//    for(int i = 0; i < N; i++) free(A[i]);
-//    for(int i = 0; i < K; i++) free(B[i]);
-//    for(int i = 0; i < N; i++) free(C[i]);
-//    free(A);
-//    free(B);
-//    free(C);
-
+    free(A);
 }
