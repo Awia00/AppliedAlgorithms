@@ -1,0 +1,8 @@
+set terminal pdf
+set output "Timings.pdf"
+set xlabel "Matrix Dimension"
+set ylabel "Seconds"
+set logscale y 10
+plot "timings.dat" using 1:2 title 'C' w linespoints, \
+     "timings.dat" using 1:3 title 'Java' w linespoints, \
+     "timings.dat" using 1:4 title 'Java (multithreaded)' w linespoints
