@@ -1,5 +1,5 @@
 set terminal pdf
-set output "Timings.pdf"
+set output "AppliedAlgorithmsMatrixMultiplicationPlots.pdf"
 set xlabel "Matrix Dimension"
 set ylabel "Seconds"
 set logscale y 10
