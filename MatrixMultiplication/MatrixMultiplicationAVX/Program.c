@@ -50,10 +50,10 @@ void MxMnaive(int N, int M, int K, myfloat *A, myfloat *B, myfloat *C) {
 int x = 0;
 int nextPR() {
   x =  (x+234532)*((x>> 5 )+12234);
-  return x & 1023;
+  return x & 16383;
 }
  
-int hash(int a, int b) { return (a>>5 | a<<27)*(b+2352351);}
+long int hash(long int a, long int b) { return (a  | a<<27)*(b+2352351);}
 int main(int argc, char **argv){
  
   if( argc != 3 ) {
@@ -89,7 +89,7 @@ int main(int argc, char **argv){
   for(int k=0;k<3;k++)
     for(int i=0; i< N*N; i++) {
       //    printf("%f ", C[i]);
-      h = hash(h, (int) C[i]);
+      h = hash(h, (long int) C[i]);
     }
   printf( "%d\n", h & 1023);
   return 0;
