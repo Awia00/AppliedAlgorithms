@@ -5,7 +5,9 @@
  
 #include<stdlib.h>
 #include<stdio.h>
- 
+#include<math.h>
+#include<x86intrin.h>
+
 typedef double myfloat;
 typedef unsigned int myindex;
 
@@ -18,16 +20,25 @@ myindex rm(int i, int m, int N, int M) {return i*M + m; }
 myindex cm(int i, int m, int N, int M) {return m*N + i; }
 
 void MxMnaive(int N, int M, int K, myfloat *A, myfloat *B, myfloat *C) {
-  const int b = 36; // Should be optimum for a 32K size cache.
+  const int b = 32; // Should be optimum for a 32K size cache.
 
+#pragma omp parallel for shared(A,B,C,N,M,K) default(none)
   for(int i0=0; i0<N; i0+=b) {
     for(int j0=0; j0<M; j0+=b) {
       for(int k0=0; k0<K; k0+=b) {
-        for(int i=i0; i< MIN(i0 + b, N); i++) {
-          for(int j=j0; j< MIN(j0 + b, M); j++) {
-            for(int k=k0; k< MIN(k0 + b, K); k++) {
-              C[rm(i,j, N,M)] += A[rm(i,k, N,K)] * B[cm(k,j, K,M)];
+        for(int i=i0; i< i0 + b; i++) {
+          for(int j=j0; j< j0 + b; j++) {
+            __m256d c1 = _mm256_set_pd(0.0,0.0,0.0,0.0);
+            for(int k=k0; k< k0 + b; k+=4) {
+              __m256d a1 =  _mm256_loadu_pd(A + rm(i, k, N, K));
+              __m256d b1 = _mm256_loadu_pd(B + cm(k, j, K, M));
+              c1 = _mm256_mul_pd(a1, b1);
+
+              double *res = (double*)&c1;
+
+              C[rm(i,j, N,M)] += res[0] + res[1] + res[2] + res[3];
             }
+
           }
         }
       }
