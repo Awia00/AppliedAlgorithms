@@ -32,13 +32,12 @@ void MxMnaive(int N, int M, int K, myfloat *A, myfloat *B, myfloat *C) {
             for(int k=k0; k< k0 + b; k+=4) {
               __m256d a1 =  _mm256_loadu_pd(A + rm(i, k, N, K));
               __m256d b1 = _mm256_loadu_pd(B + cm(k, j, K, M));
-              c1 = _mm256_mul_pd(a1, b1);
-
-              double *res = (double*)&c1;
-
-              C[rm(i,j, N,M)] += res[0] + res[1] + res[2] + res[3];
+              __m256d d1 = _mm256_mul_pd(a1, b1);
+              c1 = _mm256_add_pd(d1,c1); 
             }
+            double *res = (double*)&c1;
 
+            C[rm(i,j, N,M)] += res[0] + res[1] + res[2] + res[3];
           }
         }
       }
