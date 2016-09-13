@@ -37,17 +37,18 @@
 		\begin{tabular}{|r|r|r|r|}
 			\hline
 			Input	& C			& Java		& Java (multithreaded)\\\hline
-			1		&  0.001	&  0.064	& 0.131\\\hline
+			1		&  0.001	&  0.064	& 0.123\\\hline
 			10		&  0.001	&  0.066	& 0.125\\\hline
-			100		&  0.003	&  0.079	& 0.157\\\hline
-			200		&  0.013	&  0.087	& 0.158\\\hline
-			300		&  0.042	&  0.127	& 0.168\\\hline
-			400		&  0.098	&  0.212	& 0.218\\\hline
-			500		&  0.179	&  0.342	& 0.249\\\hline
-			1000	&  1.438	&  2.275	& 0.842\\\hline
-			1100	&  1.838	&  3.141	& 1.165\\\hline
-			1500	&  4.884	&  9.701	& 3.226\\\hline
-			2000	& 21.469	& 55.083	& 14.057\\\hline
+			100		&  0.003	&  0.079	& 0.132\\\hline
+			200		&  0.013	&  0.087	& 0.170\\\hline
+			300		&  0.042	&  0.127	& 0.188\\\hline
+			400		&  0.098	&  0.212	& 0.221\\\hline
+			500		&  0.179	&  0.342	& 0.258\\\hline
+			1000	&  1.438	&  2.275	& 0.874\\\hline
+			1100	&  1.838	&  3.141	& 1.189\\\hline
+			1500	&  4.884	&  9.701	& 2.925\\\hline
+			2000	& 21.469	& 55.083	& 7.781\\\hline
+			2500	& 42.235	& 99.932	&15.547\\\hline
 		\end{tabular}
 		\caption{Raw data of timings of the C and Java implementations. All times are given in seconds.}
 	\end{table}
@@ -59,7 +60,7 @@
 	\end{figure}
 
 	\section{Conclusion}
-	As it can be seen in the measurements, the C program outperforms the single threaded Java program in all the tested problem sizes. It can be discussed whether the 2D arrays in the single threaded Java implementation is fair against the C 1D arrays, but as the Java-runtime makes various optimizations on the bytecode I will not spend more time on optimizing the Java code.
+	As it can be seen in the measurements, the C program outperforms the single threaded Java program in all the tested problem sizes. It can be discussed whether the 2D arrays in the single threaded Java implementation is fair against the C 1D arrays, but as the Java-runtime makes various optimizations on the bytecode I will not spend more time on optimizing the single threaded Java code.
 	
 	The Java Virtual Machine takes a small amount of time to start up, which is probably the reason that the Java programs are so much slower compared to the C program with small problem sizes. In the multi-threaded Java implementation, this situation is even worse because of the overhead of creating threads.
 
