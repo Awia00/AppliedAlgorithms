@@ -173,5 +173,6 @@ Temporary Items
 hs_err_pid*
 *.pdf
 Program
+ProgramNew
 MatrixMultiplication/MatrixMultiplicationAVX/.vscode/.BROWSE.VC.DB
 MatrixMultiplication/MatrixMultiplicationAVX/.vscode/.BROWSE.VC.DB-wal
