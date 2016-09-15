@@ -32,12 +32,69 @@ void MxMnaive(int N, int M, int K, myfloat *A, myfloat *B, myfloat *C) {
           for(int j=j0; j< j0 + b; j++) {
             __m256d c1 = _mm256_setzero_pd();
 
-            for(int k=k0; k< k0 + b; k+=4) {
-              __m256d a1 = _mm256_load_pd(A + rm(i, k, N, K));
-              __m256d b1 = _mm256_load_pd(B + cm(k, j, K, M));
-
+              __m256d a1 = _mm256_load_pd(A + rm(i, k0, N, K));
+              __m256d b1 = _mm256_load_pd(B + cm(k0, j, K, M));
               c1 = _mm256_fmadd_pd(a1, b1, c1);
-            }
+
+              a1 = _mm256_load_pd(A + rm(i, k0+4, N, K));
+              b1 = _mm256_load_pd(B + cm(k0+4, j, K, M));
+              c1 = _mm256_fmadd_pd(a1, b1, c1);
+
+              a1 = _mm256_load_pd(A + rm(i, k0+8, N, K));
+              b1 = _mm256_load_pd(B + cm(k0+8, j, K, M));
+              c1 = _mm256_fmadd_pd(a1, b1, c1);
+
+              a1 = _mm256_load_pd(A + rm(i, k0+12, N, K));
+              b1 = _mm256_load_pd(B + cm(k0+12, j, K, M));
+              c1 = _mm256_fmadd_pd(a1, b1, c1);
+
+              a1 = _mm256_load_pd(A + rm(i, k0+16, N, K));
+              b1 = _mm256_load_pd(B + cm(k0+16, j, K, M));
+              c1 = _mm256_fmadd_pd(a1, b1, c1);
+
+              a1 = _mm256_load_pd(A + rm(i, k0+20, N, K));
+              b1 = _mm256_load_pd(B + cm(k0+20, j, K, M));
+              c1 = _mm256_fmadd_pd(a1, b1, c1);
+
+              a1 = _mm256_load_pd(A + rm(i, k0+24, N, K));
+              b1 = _mm256_load_pd(B + cm(k0+24, j, K, M));
+              c1 = _mm256_fmadd_pd(a1, b1, c1);
+
+              a1 = _mm256_load_pd(A + rm(i, k0+28, N, K));
+              b1 = _mm256_load_pd(B + cm(k0+28, j, K, M));
+              c1 = _mm256_fmadd_pd(a1, b1, c1);
+              
+              a1 = _mm256_load_pd(A + rm(i, k0+32, N, K));
+              b1 = _mm256_load_pd(B + cm(k0+32, j, K, M));
+              c1 = _mm256_fmadd_pd(a1, b1, c1);
+
+              a1 = _mm256_load_pd(A + rm(i, k0+36, N, K));
+              b1 = _mm256_load_pd(B + cm(k0+36, j, K, M));
+              c1 = _mm256_fmadd_pd(a1, b1, c1);
+
+              a1 = _mm256_load_pd(A + rm(i, k0+40, N, K));
+              b1 = _mm256_load_pd(B + cm(k0+40, j, K, M));
+              c1 = _mm256_fmadd_pd(a1, b1, c1);
+
+              a1 = _mm256_load_pd(A + rm(i, k0+44, N, K));
+              b1 = _mm256_load_pd(B + cm(k0+44, j, K, M));
+              c1 = _mm256_fmadd_pd(a1, b1, c1);
+
+              a1 = _mm256_load_pd(A + rm(i, k0+48, N, K));
+              b1 = _mm256_load_pd(B + cm(k0+48, j, K, M));
+              c1 = _mm256_fmadd_pd(a1, b1, c1);
+
+              a1 = _mm256_load_pd(A + rm(i, k0+52, N, K));
+              b1 = _mm256_load_pd(B + cm(k0+52, j, K, M));
+              c1 = _mm256_fmadd_pd(a1, b1, c1);
+
+              a1 = _mm256_load_pd(A + rm(i, k0+56, N, K));
+              b1 = _mm256_load_pd(B + cm(k0+56, j, K, M));
+              c1 = _mm256_fmadd_pd(a1, b1, c1);
+
+              a1 = _mm256_load_pd(A + rm(i, k0+60, N, K));
+              b1 = _mm256_load_pd(B + cm(k0+60, j, K, M));
+              c1 = _mm256_fmadd_pd(a1, b1, c1);
             double *res = (double*)&c1;
 
             C[rm(i,j, N,M)] += res[0] + res[1] + res[2] + res[3];
