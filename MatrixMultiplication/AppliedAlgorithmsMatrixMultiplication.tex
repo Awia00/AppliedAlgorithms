@@ -16,7 +16,6 @@
 	\begin{description}
 		\item [The Problem] Measurement of naive matrix multiplication in different programming languages.
 		\item [Languages] I have chosen to implement the naive matrix multiplication in C and Java. Furthermore there is a threaded implementation of the Java code.
-		\item [Question] text
 	\end{description}
 
 	\section{Methods}
@@ -37,25 +36,33 @@
 		\begin{tabular}{|r|r|r|r|}
 			\hline
 			Input	& C			& Java		& Java (multithreaded)\\\hline
-			1		&  0.001	&  0.064	& 0.123\\\hline
-			10		&  0.001	&  0.066	& 0.125\\\hline
-			100		&  0.003	&  0.079	& 0.132\\\hline
-			200		&  0.013	&  0.087	& 0.170\\\hline
-			300		&  0.042	&  0.127	& 0.188\\\hline
-			400		&  0.098	&  0.212	& 0.221\\\hline
-			500		&  0.179	&  0.342	& 0.258\\\hline
-			1000	&  1.438	&  2.275	& 0.874\\\hline
-			1100	&  1.838	&  3.141	& 1.189\\\hline
-			1500	&  4.884	&  9.701	& 2.925\\\hline
-			2000	& 21.469	& 55.083	& 7.781\\\hline
-			2500	& 42.235	& 99.932	&15.547\\\hline
+			1&	0.002&	0.066&	0.125\\\hline
+			10&	0.002&	0.075&	0.126\\\hline
+			20&	0.002&	0.069&	0.126\\\hline
+			40&	0.001&	0.075&	0.131\\\hline
+			60&	0.002&	0.081&	0.151\\\hline
+			80&	0.002&	0.083&	0.133\\\hline
+			100&	0.003&	0.081&	0.134\\\hline
+			150&	0.009&	0.092&	0.153\\\hline
+			200&	0.013&	0.100&	0.155\\\hline
+			250&	0.025&	0.128&	0.163\\\hline
+			300&	0.042&	0.136&	0.177\\\hline
+			400&	0.100&	0.219&	0.210\\\hline
+			500&	0.184&	0.350&	0.265\\\hline
+			600&	0.314&	0.537&	0.356\\\hline
+			700&	0.496&	0.839&	0.469\\\hline
+			800&	0.839&	1.197&	0.624\\\hline
+			900&	1.100&	2.377&	0.738\\\hline
+			1000&	1.464&	2.376&	0.970\\\hline
+			1500&	8.910&	16.875&	3.398\\\hline
+			2000&	24.793&	46.584&	10.934\\\hline
 		\end{tabular}
-		\caption{Raw data of timings of the C and Java implementations. All times are given in seconds.}
+		\caption{Raw data of timings of the C and Java implementations. All times are given in seconds. In the last row it seems as if the single-threaded Java implementation is around 2 times slower than the C implementation, and the C implementation is a little more than 2 times slower than the multi-threaded Java implementation. This makes sense since the total speedup of the multi-threaded Java implementation can only be around the number of processors available on the setup.}
 	\end{table}
 	
 	\begin{figure}[H]
 		\includegraphics[width=\textwidth]{AppliedAlgorithmsMatrixMultiplicationPlots.pdf}
-		\caption{Graphical presentation of the data. Note the logarithmic scale of the y-axis.}
+		\caption{Graphical presentation of the data. Note the logarithmic scale of the y-axis. As seen in the data, the Java-programs have a fairly high upstart penalty.}
 		\label{fig:plots}
 	\end{figure}
 
