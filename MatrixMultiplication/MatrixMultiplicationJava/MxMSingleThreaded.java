@@ -1,4 +1,4 @@
-public class Program {
+public class MxMSingleThreaded {
     public static void main(String[] args) {
         int N = Integer.parseInt(args[0]);
         int M = args.length > 1 ? Integer.parseInt(args[1]) : N;

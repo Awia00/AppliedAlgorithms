@@ -1,6 +1,6 @@
 import java.util.concurrent.*;
 
-public class Program2 {
+public class MxMMultiThreaded {
 
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {
