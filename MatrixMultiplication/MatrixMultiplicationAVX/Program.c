@@ -2,7 +2,7 @@
 // itu, course APALG
 // by Riko Jacob
 // first created Fall 16
- 
+
 #include<stdlib.h>
 #include<stdio.h>
 #include<math.h>
@@ -77,17 +77,16 @@ int main(int argc, char **argv){
     printf("Could not allocate memory\n");
     exit(2);
   }
-
-  for(int k=0;k<N/2+1;k++) {
-    for(i=0; i< N; i++) {
-      for(j=0; j<N; j++) {
-        A[rm(i,j,N,N)] = nextPR();
-        B[cm(i,j,N,N)] = nextPR();
-        C[rm(i,j,N,N)] = 0;
-      }
+  for(i=0;i<(N/2)*N*N;i++){nextPR();nextPR();}
+  for(i=0; i< N; i++) {
+    for(j=0; j<N; j++) {
+      A[rm(i,j,N,N)] = nextPR();
+      B[cm(i,j,N,N)] = nextPR();
+      C[rm(i,j,N,N)] = 0;
     }
-    MxMnaive(N,N,N, A,B,C);
   }
+  MxMnaive(N,N,N, A,B,C);
+
   int h = atoi(argv[2]);
   for(int k=0;k<3;k++)
     for(int i=0; i< N*N; i++) {
