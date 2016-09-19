@@ -58,7 +58,7 @@ int LevenshteinDistance(mychar *s, mychar *t)
     copy = copy ? 0 : 1;
   }
 
-  return copy ? v1[tlen] : v0[tlen];
+  return copy ? v0[tlen] : v1[tlen];
 }
 
 int main(int argc, char **argv) {
