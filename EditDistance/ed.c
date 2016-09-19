@@ -36,17 +36,29 @@ int LevenshteinDistance(mychar *s, mychar *t)
   for (i = 0; i < tlen + 1; i++)
       v0[i] = i;
 
+  int copy = 1;
   for (i = 0; i < slen; i++)
   {
-    v1[0] = i + 1;
-    for (j = 0; j < tlen; j++)
+    if(copy)
     {
-      v1[j + 1] = MIN(v1[j] + 1, MIN(v0[j + 1] + 1, v0[j] + ((s[i] == t[j]) ? 0 : 1)));
+      v1[0] = i + 1;
+      for (j = 0; j < tlen; j++)
+      {
+        v1[j + 1] = MIN(v1[j] + 1, MIN(v0[j + 1] + 1, v0[j] + ((s[i] == t[j]) ? 0 : 1)));
+      }
     }
-    memcpy(v0, v1, (tlen + 1) * sizeof *v0);
+    else
+    {
+      v0[0] = i + 1;
+      for (j = 0; j < tlen; j++)
+      {
+        v0[j + 1] = MIN(v0[j] + 1, MIN(v1[j + 1] + 1, v1[j] + ((s[i] == t[j]) ? 0 : 1)));
+      }
+    }
+    copy = copy ? 0 : 1;
   }
 
-  return v1[tlen];
+  return copy ? v1[tlen] : v0[tlen];
 }
 
 int main(int argc, char **argv) {
