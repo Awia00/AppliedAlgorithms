@@ -38,12 +38,8 @@ myword signMx(smallindex N, smallindex M, content *A, int seed ) { // A needs 8 
   return x;
 };
 
-// row major
-bigindex rm(smallindex i, smallindex m, smallindex N, smallindex M) {
-  return i*(bigindex)M + m; }
-bigindex cm(smallindex i, smallindex m, smallindex N, smallindex M) {
-  return m*(bigindex)N + i; }
-
+#define RM(i, m, N, M) (i)*(M)+(m)
+#define CM(i, m, N, M) (m)*(N)+(i)
 #define MIN(a,b) ((a) < (b) ? a : b)
 
 void transposeNaive(smallindex N, smallindex M,content *A, content *B) {
@@ -56,7 +52,7 @@ void transposeNaive(smallindex N, smallindex M,content *A, content *B) {
       int limJ = MIN(j0 + blockSize, M);
       for (i = i0; i < limI; i++) {
         for (j = j0; j < limJ; j++) {
-          B[cm(i, j, N, M)] = A[rm(i, j, N, M)];
+          B[CM(i, j, N, M)] = A[RM(i, j, N, M)];
         }
       }
     }
@@ -66,7 +62,7 @@ void transposeNaive(smallindex N, smallindex M,content *A, content *B) {
 void  printMx(smallindex N,smallindex M,content *A) {
   for(smallindex i=0; i< N; i++) {
     for(smallindex j=0; j<M; j++)
-      printf("%3d ", 128+A[rm(i,j,N,M)]);
+      printf("%3d ", 128+A[RM(i,j,N,M)]);
     printf("\n");
   }
 }
