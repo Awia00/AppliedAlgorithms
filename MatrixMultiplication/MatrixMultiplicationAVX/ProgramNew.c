@@ -66,9 +66,9 @@ int main(int argc, char **argv){
   myindex N = atoi(argv[1]);
   x = atoi(argv[2]);
 
-  myfloat *A = _mm_malloc(3*N*N*sizeof *A, 32);
+  myfloat *A = _mm_malloc(2*N*N*sizeof *A, 32);
   myfloat *B = A + (N*N);
-  myfloat *C = B + (N*N);
+  myfloat *C = calloc(N*N*sizeof *C, sizeof *C);
 
   int i,j;
 
@@ -81,7 +81,6 @@ int main(int argc, char **argv){
     for(j=0; j<N; j++) {
       A[rm(i,j,N,N)] = nextPR();
       B[cm(i,j,N,N)] = nextPR();
-      C[rm(i,j,N,N)] = 0;
     }
   }
   MxMnaive(N,N,N, A,B,C);
