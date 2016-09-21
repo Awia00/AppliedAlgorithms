@@ -82,20 +82,51 @@ void transpose(int N, int M,myword *A, myword *B) {
     }
   }
 }
+
+void MxMBinBetter5(int N, int M, int K, myword *A, myword *B, myword *C, myword *Btrans) {
+    transpose(N, M, B, Btrans);
+    int i,j,k,dp;
+    int const K64 = K/64;
+    #pragma omp parallel for private(i,j,k,dp) shared(A, B,C, N,M,K)
+    for(i=0; i< N; i++){
+        for(j=0; j<M; j++) {
+            __uint64_t cc[4];
+            __m256i d =  _mm256_setzero_si256();
+            for(k = 0; k<K64; k+=4)
+            {
+                __m256i a = _mm256_loadu_si256((__m256i *) &(A[ i*(K64) + k ]));
+                __m256i b = _mm256_loadu_si256((__m256i *) &(Btrans[ j*(K64) + k ]));
+                __m256i c = _mm256_and_si256(a, b);
+                d = _mm256_xor_si256(d, c);
+
+                //_mm256_storeu_si256((__m256i*) cc, _mm256_and_si256(_mm256_loadu_si256((__m256i *) &(A[ i*(K64) + k ])), _mm256_loadu_si256((__m256i *) &(Btrans[ j*(K64) + k ]))));
+                //dp ^= cc[0] + __builtin_popcountl(cc[1]) + __builtin_popcountl(cc[2]) + __builtin_popcountl(cc[3]);
+            }
+            _mm256_storeu_si256((__m256i*) cc, d);
+            dp = __builtin_popcountl(cc[0]) +  __builtin_popcountl(cc[1]) +  __builtin_popcountl(cc[2]) +  __builtin_popcountl(cc[3]);
+            set(C,dp&1,i,j, N,M);  
+        }
+    }
+}
+
 void MxMBinBetter4(int N, int M, int K, myword *A, myword *B, myword *C, myword *Btrans) {
     transpose(N, M, B, Btrans);
-    int i,j,k,m,dp;  
-    //#pragma omp parallel for private(i,j,k,m,dp) shared(A, B,C, N,M,K)
+    int i,j,k,dp;
+    int const K64 = K/64;
+    #pragma omp parallel for private(i,j,k,dp) shared(A, B,C, N,M,K)
     for(i=0; i< N; i++){
         for(j=0; j<M; j++) {
             dp = 0;
-            for(k = 0; k<K; k+=64*4)
+            for(k = 0; k<K64; k+=4)
             {
-                __m256i a = _mm256_loadu_si256((__m256i *) &(A[ i*(K/64) + k/64 ]));
-                __m256i b = _mm256_loadu_si256((__m256i *) &(Btrans[ j*(M/64) + k/64 ]));
-                __m256i c = _mm256_and_si256(a, b);
                 __uint64_t cc[4];
+                __m256i a = _mm256_loadu_si256((__m256i *) &(A[ i*(K64) + k ]));
+                __m256i b = _mm256_loadu_si256((__m256i *) &(Btrans[ j*(K64) + k ]));
+                __m256i c = _mm256_and_si256(a, b);
+
+                
                 _mm256_storeu_si256((__m256i*) cc, c);
+                //_mm256_storeu_si256((__m256i*) cc, _mm256_and_si256(_mm256_loadu_si256((__m256i *) &(A[ i*(K64) + k ])), _mm256_loadu_si256((__m256i *) &(Btrans[ j*(K64) + k ]))));
                 dp += __builtin_popcountl(cc[0]) + __builtin_popcountl(cc[1]) + __builtin_popcountl(cc[2]) + __builtin_popcountl(cc[3]);
             }
             set(C,dp&1,i,j, N,M);  
@@ -140,29 +171,30 @@ void MxMBinBetter2(int N, int M, int K, myword *A, myword *B, myword *C, myword 
         }
     }
 }
-// void MxMBinBetter(int N, int M, int K, myword *A, myword *B, myword *C)
-// {
-//     int i,j,k, i0,j0;
-//     int const b = 128;
-//     #pragma omp parallel for private(i,j,k,i0,j0) shared(A, B,C, N,M,K)
-//     for(i0 = 0; i0<N; i0+=b) {
-//         for(j0 = 0; j0<M; j0+=b) {
-//             for(i=i0; i<i0+b; i++) {
-//                 for(j=j0; j<j0+b; j++) {
-//                     int dp = 0;
-//                     for(k=0; k<K; k++) 
-//                     {
-//                         if( get(A,i,k,N,K) && get(B,k,j, K,M) ) 
-//                         {
-//                             dp++;
-//                         }
-//                     }
-//                     set(C,dp&1,i,j, N,M);
-//                 }
-//             }
-//         }
-//     }    
-// }
+
+void MxMBinBetter(int N, int M, int K, myword *A, myword *B, myword *C) {
+    int i,j,k, i0,j0;
+    int const b = 128;
+    #pragma omp parallel for private(i,j,k,i0,j0) shared(A, B,C, N,M,K)
+    for(i0 = 0; i0<N; i0+=b) {
+        for(j0 = 0; j0<M; j0+=b) {
+            for(i=i0; i<i0+b; i++) {
+                for(j=j0; j<j0+b; j++) {
+                    int dp = 0;
+                    for(k=0; k<K; k++) 
+                    {
+                        if( get(A,i,k,N,K) && get(B,k,j, K,M) ) 
+                        {
+                            dp++;
+                        }
+                    }
+                    set(C,dp&1,i,j, N,M);
+                }
+            }
+        }
+    }    
+}
+
 void MxMBinNaive(int N, int M, int K, myword *A, myword *B, myword *C) {
   int i,j,k;
   #pragma omp parallel for private(i,j,k) shared(A, B,C, N,M,K)
@@ -191,7 +223,7 @@ int main(int argc, char **argv) {
   // allocate some extra memory ...
   myindex size = N*N/8 + 520;
   myword *A =           _mm_malloc( size, sizeof *A);
-  myword *B =           _mm_malloc( size, sizeof *B );
+  myword *B =           (myword *) malloc( size);
   myword *C =           _mm_malloc( size, sizeof *C );
   myword *Btrans =      _mm_malloc( size, sizeof *Btrans );
   // ... to increase the pointer to the next aligned position
@@ -215,7 +247,8 @@ int main(int argc, char **argv) {
     }
   }
   gettimeofday(&t2, NULL);
-  MxMBinBetter4(N,N,N,A,B,C,Btrans);
+  MxMBinBetter5(N,N,N,A,B,C,Btrans);
+  //MxMBinBetter4(N,N,N,A,B,C,Btrans);
   //MxMBinBetter3(N,N,N,A,B,C,Btrans);
   //MxMBinBetter2(N,N,N,A,B,C,Btrans);
   //MxMBinBetter(N,N,N,A,B,C);
