@@ -91,19 +91,15 @@ void MxMBinBetter5(int N, int M, int K, myword *A, myword *B, myword *C, myword 
     for(i=0; i< N; i++){
         for(j=0; j<M; j++) {
             __uint64_t cc[4];
-            __m256i d =  _mm256_setzero_si256();
+            __m256i c =  _mm256_setzero_si256();
             for(k = 0; k<K64; k+=4)
             {
                 __m256i a = _mm256_loadu_si256((__m256i *) &(A[ i*(K64) + k ]));
                 __m256i b = _mm256_loadu_si256((__m256i *) &(Btrans[ j*(K64) + k ]));
-                __m256i c = _mm256_and_si256(a, b);
-                d = _mm256_xor_si256(d, c);
-
-                //_mm256_storeu_si256((__m256i*) cc, _mm256_and_si256(_mm256_loadu_si256((__m256i *) &(A[ i*(K64) + k ])), _mm256_loadu_si256((__m256i *) &(Btrans[ j*(K64) + k ]))));
-                //dp ^= cc[0] + __builtin_popcountl(cc[1]) + __builtin_popcountl(cc[2]) + __builtin_popcountl(cc[3]);
+                c = _mm256_xor_si256(_mm256_and_si256(a, b), c);
             }
-            _mm256_storeu_si256((__m256i*) cc, d);
-            dp = __builtin_popcountl(cc[0]) +  __builtin_popcountl(cc[1]) +  __builtin_popcountl(cc[2]) +  __builtin_popcountl(cc[3]);
+            _mm256_storeu_si256((__m256i*) cc, c);
+            dp = __builtin_popcountl(cc[0] ^ cc[1] ^ cc[2] ^ cc[3]);
             set(C,dp&1,i,j, N,M);  
         }
     }
@@ -136,8 +132,8 @@ void MxMBinBetter4(int N, int M, int K, myword *A, myword *B, myword *C, myword 
 
 void MxMBinBetter3(int N, int M, int K, myword *A, myword *B, myword *C, myword *Btrans) {
     transpose(N, M, B, Btrans);
-    int i,j,k,m,dp;  
-    #pragma omp parallel for private(i,j,k,m,dp) shared(A, B,C, N,M,K)
+    int i,j,k,dp;  
+    #pragma omp parallel for private(i,j,k,dp) shared(A, B,C, N,M,K)
     for(i=0; i< N; i++){
         for(j=0; j<M; j++) {
             dp = 0;
