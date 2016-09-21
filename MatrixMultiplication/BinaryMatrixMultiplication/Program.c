@@ -52,7 +52,8 @@ myword signBinMx(int N, int M, myword *A, int seed ) {
  
  
 // the definition of how the bits are interpreted as a matrix
-int get(myword *A, int i, int m, int N, int M) { return 1L & (A[ i*(M/64) + m/64 ]>> (m & 63));}
+int get(myword *A, int i, int m, int D, int M) { return 1L & (A[ i*(M/64) + m/64 ]>> (m & 63));}
+
 void set(myword *A, int val, int i, int m, int N, int M) {
   //  printf("%d %d\n",i,m);
   A[ i*(M/64) + m/64 ] |= (1L << (m & 63));
@@ -81,8 +82,47 @@ void transpose(int N, int M,myword *A, myword *B) {
     }
   }
 }
+void MxMBinBetter4(int N, int M, int K, myword *A, myword *B, myword *C, myword *Btrans) {
+    transpose(N, M, B, Btrans);
+    int i,j,k,m,dp;  
+    //#pragma omp parallel for private(i,j,k,m,dp) shared(A, B,C, N,M,K)
+    for(i=0; i< N; i++){
+        for(j=0; j<M; j++) {
+            dp = 0;
+            for(k = 0; k<K; k+=64*4)
+            {
+                __m256i a = _mm256_loadu_si256((__m256i *) &(A[ i*(K/64) + k/64 ]));
+                __m256i b = _mm256_loadu_si256((__m256i *) &(Btrans[ j*(M/64) + k/64 ]));
+                __m256i c = _mm256_and_si256(a, b);
+                __uint64_t cc[4];
+                _mm256_storeu_si256((__m256i*) cc, c);
+                dp += __builtin_popcountl(cc[0]) + __builtin_popcountl(cc[1]) + __builtin_popcountl(cc[2]) + __builtin_popcountl(cc[3]);
+            }
+            set(C,dp&1,i,j, N,M);  
+        }
+    }
+}
 
-MxMBinBetter2(int N, int M, int K, myword *A, myword *B, myword *C, myword *Btrans) {
+void MxMBinBetter3(int N, int M, int K, myword *A, myword *B, myword *C, myword *Btrans) {
+    transpose(N, M, B, Btrans);
+    int i,j,k,m,dp;  
+    #pragma omp parallel for private(i,j,k,m,dp) shared(A, B,C, N,M,K)
+    for(i=0; i< N; i++){
+        for(j=0; j<M; j++) {
+            dp = 0;
+            for(k = 0; k<K; k+=64)
+            {
+                __uint64_t a = A[ i*(K/64) + k/64 ];
+                __uint64_t b = Btrans[ j*(M/64) + k/64 ];
+                __uint64_t c = a & b;
+                dp += __builtin_popcountl(c);
+            }
+            set(C,dp&1,i,j, N,M);  
+        }
+    }
+}
+
+void MxMBinBetter2(int N, int M, int K, myword *A, myword *B, myword *C, myword *Btrans) {
     transpose(N, M, B, Btrans);
     int i,j,k, dp;  
     #pragma omp parallel for private(i,j,k,dp) shared(A, B,C, N,M,K)
@@ -94,6 +134,7 @@ MxMBinBetter2(int N, int M, int K, myword *A, myword *B, myword *C, myword *Btra
                 if( GET(A,i,(k+1),N,K) && GET(Btrans,j,(k+1), K,M) ) dp++;
                 if( GET(A,i,(k+2),N,K) && GET(Btrans,j,(k+2), K,M) ) dp++;
                 if( GET(A,i,(k+3),N,K) && GET(Btrans,j,(k+3), K,M) ) dp++;
+                
             }
             set(C,dp&1,i,j, N,M);  
         }
@@ -149,10 +190,10 @@ int main(int argc, char **argv) {
  
   // allocate some extra memory ...
   myindex size = N*N/8 + 520;
-  myword *A = (myword *) malloc( size );
-  myword *B = (myword *) malloc( size );
-  myword *C = (myword *) malloc( size );
-  myword *Btrans = (myword *) malloc( size );
+  myword *A =           _mm_malloc( size, sizeof *A);
+  myword *B =           _mm_malloc( size, sizeof *B );
+  myword *C =           _mm_malloc( size, sizeof *C );
+  myword *Btrans =      _mm_malloc( size, sizeof *Btrans );
   // ... to increase the pointer to the next aligned position
   // we forget the original, because we do not intend to ever free the memory anyway 
   A = (myword *) (((long long unsigned int) A | 255 ) +1 );
@@ -174,7 +215,9 @@ int main(int argc, char **argv) {
     }
   }
   gettimeofday(&t2, NULL);
-  MxMBinBetter2(N,N,N,A,B,C,Btrans);
+  MxMBinBetter4(N,N,N,A,B,C,Btrans);
+  //MxMBinBetter3(N,N,N,A,B,C,Btrans);
+  //MxMBinBetter2(N,N,N,A,B,C,Btrans);
   //MxMBinBetter(N,N,N,A,B,C);
   //MxMBinNaive(N,N,N,A,B,C);
   myword sig = 1324123147L;
