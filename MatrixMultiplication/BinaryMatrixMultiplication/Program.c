@@ -52,12 +52,13 @@ myword signBinMx(int N, int M, myword *A, int seed ) {
  
  
 // the definition of how the bits are interpreted as a matrix
-int get(myword *A, int i, int m, int N, int M) { return 1L & (A[ i*(M/64) + m/64 ]>> (m & 63));}
+int get(myword *A, int i, int m, int D, int M) { return 1L & (A[ i*(M/64) + m/64 ]>> (m & 63));}
+
 void set(myword *A, int val, int i, int m, int N, int M) {
   //  printf("%d %d\n",i,m);
-  A[ i*(M/64) + m/64 ] |= (1L << (m & 63));
+  A[ i*(M/64) + m/64 ] |= (1L << (m & 63)); // sets the specific bit to 1
   if(!val) {
-    A[ i*(M/64) + m/64 ] ^= (1L << (m & 63));
+    A[ i*(M/64) + m/64 ] ^= (1L << (m & 63));  // inverts the bit again because it should be zero
     if( get(A,i,m,N,M) ) {exit(7);} // just making sure...
   }
   else{
@@ -82,7 +83,102 @@ void transpose(int N, int M,myword *A, myword *B) {
   }
 }
 
-MxMBinBetter2(int N, int M, int K, myword *A, myword *B, myword *C, myword *Btrans) {
+void MxMBinBetter6(int N, int M, int K, myword *A, myword *B, myword *C, myword *Btrans) {
+    transpose(N, M, B, Btrans);
+    int i,j,i0,j0,k,dp;
+    int const b = 64;
+    int const K64 = K/64;
+    #pragma omp parallel for private(i,j,i0,j0,k,dp) shared(A, B,C, N,M,K)
+    for(i0 = 0; i0<N; i0+=b) {
+        int limI = i0+b;
+        for(j0 = 0; j0<M; j0+=b) {
+            int limJ = j0+b;
+            for(i=i0; i<limI; i++) {
+                for(j=j0; j<limJ; j++) {
+                    __uint64_t cc[4];
+                    __m256i c =  _mm256_setzero_si256();
+                    for(k = 0; k<K64; k+=4)
+                    {
+                        __m256i a = _mm256_loadu_si256((__m256i *) &(A[ i*(K64) + k ]));
+                        __m256i b = _mm256_loadu_si256((__m256i *) &(Btrans[ j*(K64) + k ]));
+                        c = _mm256_xor_si256(_mm256_and_si256(a, b), c);
+                    }
+                    _mm256_storeu_si256((__m256i*) cc, c);
+                    dp = __builtin_popcountl(cc[0] ^ cc[1] ^ cc[2] ^ cc[3]);
+                    set(C,dp&1,i,j, N,M); 
+                }
+            }
+        }
+    }
+}
+
+void MxMBinBetter5(int N, int M, int K, myword *A, myword *B, myword *C, myword *Btrans) {
+    transpose(N, M, B, Btrans);
+    int i,j,k,dp;
+    int const K64 = K/64;
+    #pragma omp parallel for private(i,j,k,dp) shared(A, B,C, N,M,K)
+    for(i=0; i< N; i++){
+        for(j=0; j<M; j++) {
+            __uint64_t cc[4];
+            __m256i c =  _mm256_setzero_si256();
+            for(k = 0; k<K64; k+=4)
+            {
+                __m256i a = _mm256_loadu_si256((__m256i *) &(A[ i*(K64) + k ]));
+                __m256i b = _mm256_loadu_si256((__m256i *) &(Btrans[ j*(K64) + k ]));
+                c = _mm256_xor_si256(_mm256_and_si256(a, b), c);
+            }
+            _mm256_storeu_si256((__m256i*) cc, c);
+            dp = __builtin_popcountl(cc[0] ^ cc[1] ^ cc[2] ^ cc[3]);
+            set(C,dp&1,i,j, N,M);  
+        }
+    }
+}
+
+void MxMBinBetter4(int N, int M, int K, myword *A, myword *B, myword *C, myword *Btrans) {
+    transpose(N, M, B, Btrans);
+    int i,j,k,dp;
+    int const K64 = K/64;
+    #pragma omp parallel for private(i,j,k,dp) shared(A, B,C, N,M,K)
+    for(i=0; i< N; i++){
+        for(j=0; j<M; j++) {
+            dp = 0;
+            for(k = 0; k<K64; k+=4)
+            {
+                __uint64_t cc[4];
+                __m256i a = _mm256_loadu_si256((__m256i *) &(A[ i*(K64) + k ]));
+                __m256i b = _mm256_loadu_si256((__m256i *) &(Btrans[ j*(K64) + k ]));
+                __m256i c = _mm256_and_si256(a, b);
+
+                
+                _mm256_storeu_si256((__m256i*) cc, c);
+                //_mm256_storeu_si256((__m256i*) cc, _mm256_and_si256(_mm256_loadu_si256((__m256i *) &(A[ i*(K64) + k ])), _mm256_loadu_si256((__m256i *) &(Btrans[ j*(K64) + k ]))));
+                dp += __builtin_popcountl(cc[0]) + __builtin_popcountl(cc[1]) + __builtin_popcountl(cc[2]) + __builtin_popcountl(cc[3]);
+            }
+            set(C,dp&1,i,j, N,M);  
+        }
+    }
+}
+
+void MxMBinBetter3(int N, int M, int K, myword *A, myword *B, myword *C, myword *Btrans) {
+    transpose(N, M, B, Btrans);
+    int i,j,k,dp;  
+    #pragma omp parallel for private(i,j,k,dp) shared(A, B,C, N,M,K)
+    for(i=0; i< N; i++){
+        for(j=0; j<M; j++) {
+            dp = 0;
+            for(k = 0; k<K; k+=64)
+            {
+                __uint64_t a = A[ i*(K/64) + k/64 ];
+                __uint64_t b = Btrans[ j*(M/64) + k/64 ];
+                __uint64_t c = a & b;
+                dp += __builtin_popcountl(c);
+            }
+            set(C,dp&1,i,j, N,M);  
+        }
+    }
+}
+
+void MxMBinBetter2(int N, int M, int K, myword *A, myword *B, myword *C, myword *Btrans) {
     transpose(N, M, B, Btrans);
     int i,j,k, dp;  
     #pragma omp parallel for private(i,j,k,dp) shared(A, B,C, N,M,K)
@@ -94,34 +190,36 @@ MxMBinBetter2(int N, int M, int K, myword *A, myword *B, myword *C, myword *Btra
                 if( GET(A,i,(k+1),N,K) && GET(Btrans,j,(k+1), K,M) ) dp++;
                 if( GET(A,i,(k+2),N,K) && GET(Btrans,j,(k+2), K,M) ) dp++;
                 if( GET(A,i,(k+3),N,K) && GET(Btrans,j,(k+3), K,M) ) dp++;
+                
             }
             set(C,dp&1,i,j, N,M);  
         }
     }
 }
-// void MxMBinBetter(int N, int M, int K, myword *A, myword *B, myword *C)
-// {
-//     int i,j,k, i0,j0;
-//     int const b = 128;
-//     #pragma omp parallel for private(i,j,k,i0,j0) shared(A, B,C, N,M,K)
-//     for(i0 = 0; i0<N; i0+=b) {
-//         for(j0 = 0; j0<M; j0+=b) {
-//             for(i=i0; i<i0+b; i++) {
-//                 for(j=j0; j<j0+b; j++) {
-//                     int dp = 0;
-//                     for(k=0; k<K; k++) 
-//                     {
-//                         if( get(A,i,k,N,K) && get(B,k,j, K,M) ) 
-//                         {
-//                             dp++;
-//                         }
-//                     }
-//                     set(C,dp&1,i,j, N,M);
-//                 }
-//             }
-//         }
-//     }    
-// }
+
+void MxMBinBetter(int N, int M, int K, myword *A, myword *B, myword *C) {
+    int i,j,k, i0,j0;
+    int const b = 128;
+    #pragma omp parallel for private(i,j,k,i0,j0) shared(A, B,C, N,M,K)
+    for(i0 = 0; i0<N; i0+=b) {
+        for(j0 = 0; j0<M; j0+=b) {
+            for(i=i0; i<i0+b; i++) {
+                for(j=j0; j<j0+b; j++) {
+                    int dp = 0;
+                    for(k=0; k<K; k++) 
+                    {
+                        if( get(A,i,k,N,K) && get(B,k,j, K,M) ) 
+                        {
+                            dp++;
+                        }
+                    }
+                    set(C,dp&1,i,j, N,M);
+                }
+            }
+        }
+    }    
+}
+
 void MxMBinNaive(int N, int M, int K, myword *A, myword *B, myword *C) {
   int i,j,k;
   #pragma omp parallel for private(i,j,k) shared(A, B,C, N,M,K)
@@ -132,6 +230,9 @@ void MxMBinNaive(int N, int M, int K, myword *A, myword *B, myword *C) {
         if( get(A,i,k,N,K) && get(B,k,j, K,M) ) dp++;
       set(C,dp&1,i,j, N,M);    // this is operating in GF2
       // set(C,dp,i,j, N,M);   // this would be boolean AND OR (on random matrices this is the all ones matrix with very very high prob)
+      // dp&1 means taking the last bit.
+      // GF2 * means= 0*0=0, 0*1=0, 1*0=0, 1*1=1 which is and
+      // GF2 + means= 0+0=0, 0+1=1, 1+0=1, 1+1=0 which is xor
     }
 }
  
@@ -149,18 +250,17 @@ int main(int argc, char **argv) {
  
   // allocate some extra memory ...
   myindex size = N*N/8 + 520;
-  myword *A = (myword *) malloc( size );
-  myword *B = (myword *) malloc( size );
-  myword *C = (myword *) malloc( size );
-  myword *Btrans = (myword *) malloc( size );
+  myword *A =           (myword *) malloc( size);
+  myword *B =           (myword *) malloc( size);
+  myword *C =           (myword *) malloc( size);
+  myword *Btrans =      (myword *) malloc( size);
   // ... to increase the pointer to the next aligned position
   // we forget the original, because we do not intend to ever free the memory anyway 
   A = (myword *) (((long long unsigned int) A | 255 ) +1 );
   B = (myword *) (((long long unsigned int) B | 255 ) +1 );
   C = (myword *) (((long long unsigned int) C | 255 ) +1 );
- 
-  struct timeval t1, t2,t3,t4;//,t5,t6,t7;
-  gettimeofday(&t1, NULL);
+  Btrans = (myword *) (((long long unsigned int) Btrans | 255 ) +1 );
+
   // initialize the matrices in parallel
 #pragma omp parallel sections shared(N,A,B,seedA,seedB) default(none)
   {
@@ -173,8 +273,11 @@ int main(int argc, char **argv) {
       rndBinMx(N, N, B, seedB );
     }
   }
-  gettimeofday(&t2, NULL);
-  MxMBinBetter2(N,N,N,A,B,C,Btrans);
+  MxMBinBetter6(N,N,N,A,B,C,Btrans);
+  //MxMBinBetter5(N,N,N,A,B,C,Btrans);
+  //MxMBinBetter4(N,N,N,A,B,C,Btrans);
+  //MxMBinBetter3(N,N,N,A,B,C,Btrans);
+  //MxMBinBetter2(N,N,N,A,B,C,Btrans);
   //MxMBinBetter(N,N,N,A,B,C);
   //MxMBinNaive(N,N,N,A,B,C);
   myword sig = 1324123147L;
