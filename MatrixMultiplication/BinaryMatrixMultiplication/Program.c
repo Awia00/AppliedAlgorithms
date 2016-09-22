@@ -83,8 +83,45 @@ void transpose(int N, int M,myword *A, myword *B) {
   }
 }
 
+// set(C,dp,i,j, N,M);   // this would be boolean AND OR (on random matrices this is the all ones matrix with very very high prob)
+// dp&1 means taking the last bit.
+// GF2 * means= 0*0=0, 0*1=0, 1*0=0, 1*1=1 which is and
+// GF2 + means= 0+0=0, 0+1=1, 1+0=1, 1+1=0 which is xor
+void MxMBinReference1(int N, int M, int K, myword *A, myword *B, myword *C)
+{
+    A = __builtin_assume_aligned(A, 32);
+    B = __builtin_assume_aligned(B, 32);
+    C = __builtin_assume_aligned(C, 32);
+    int i,j,k,i0,k0;
+    int const b=128;
+    #pragma omp parallel for private(i,j,k,i0,k0) shared(A, B,C, N,M,K) default(none)
+    for(i0=0; i0<N; i0+=b)
+    {
+        int limI = i0+b;
+        for(k0=0; k0<N; k0+=b)
+        {
+            int limK = k0+b;
+            for(i=i0; i<limI; i++) { 
+                for(k=k0; k<limK; k++){
+                    if(get(A,i,k,N,K)) {
+                        for(j=0; j<M/64; j+=4) {
+                            //__m256i b = _mm256_load_si256((__m256i *) (B + k*(K/64) + j ));
+                            //__m256i c = _mm256_load_si256((__m256i *) (C + i*(K/64) + j ));
+                            _mm256_storeu_si256((__m256i*) (C + i*(N/64) + j), _mm256_xor_si256(_mm256_load_si256((__m256i *) (B + k*(K/64) + j )),  _mm256_load_si256((__m256i *) (C + i*(K/64) + j ))));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+}
+
 void MxMBinBetter6(int N, int M, int K, myword *A, myword *B, myword *C, myword *Btrans) {
     transpose(N, M, B, Btrans);
+    A = __builtin_assume_aligned(A, 32);
+    C = __builtin_assume_aligned(C, 32);
+    Btrans = __builtin_assume_aligned(Btrans, 32);
     int i,j,i0,j0,k,dp;
     int const b = 64;
     int const K64 = K/64;
@@ -99,8 +136,8 @@ void MxMBinBetter6(int N, int M, int K, myword *A, myword *B, myword *C, myword 
                     __m256i c =  _mm256_setzero_si256();
                     for(k = 0; k<K64; k+=4)
                     {
-                        __m256i a = _mm256_loadu_si256((__m256i *) &(A[ i*(K64) + k ]));
-                        __m256i b = _mm256_loadu_si256((__m256i *) &(Btrans[ j*(K64) + k ]));
+                        __m256i a = _mm256_load_si256((__m256i *) &(A[ i*(K64) + k ]));
+                        __m256i b = _mm256_load_si256((__m256i *) &(Btrans[ j*(K64) + k ]));
                         c = _mm256_xor_si256(_mm256_and_si256(a, b), c);
                     }
                     _mm256_storeu_si256((__m256i*) cc, c);
@@ -249,17 +286,10 @@ int main(int argc, char **argv) {
   myword seedB = atoi(argv[3]);
  
   // allocate some extra memory ...
-  myindex size = N*N/8 + 520;
-  myword *A =           (myword *) malloc( size);
-  myword *B =           (myword *) malloc( size);
-  myword *C =           (myword *) malloc( size);
-  myword *Btrans =      (myword *) malloc( size);
-  // ... to increase the pointer to the next aligned position
-  // we forget the original, because we do not intend to ever free the memory anyway 
-  A = (myword *) (((long long unsigned int) A | 255 ) +1 );
-  B = (myword *) (((long long unsigned int) B | 255 ) +1 );
-  C = (myword *) (((long long unsigned int) C | 255 ) +1 );
-  Btrans = (myword *) (((long long unsigned int) Btrans | 255 ) +1 );
+  myword *A = (myword *) _mm_malloc( N*N/8, 32 );
+  myword *B = (myword *) _mm_malloc( N*N/8, 32 );
+  myword *C = (myword *) _mm_malloc( N*N/8, 32 );
+  //myword *Btrans = (myword *) _mm_malloc( N*N/8, 32 );
 
   // initialize the matrices in parallel
 #pragma omp parallel sections shared(N,A,B,seedA,seedB) default(none)
@@ -273,7 +303,8 @@ int main(int argc, char **argv) {
       rndBinMx(N, N, B, seedB );
     }
   }
-  MxMBinBetter6(N,N,N,A,B,C,Btrans);
+  MxMBinReference1(N,N,N,A,B,C);
+  //MxMBinBetter6(N,N,N,A,B,C,Btrans);
   //MxMBinBetter5(N,N,N,A,B,C,Btrans);
   //MxMBinBetter4(N,N,N,A,B,C,Btrans);
   //MxMBinBetter3(N,N,N,A,B,C,Btrans);
