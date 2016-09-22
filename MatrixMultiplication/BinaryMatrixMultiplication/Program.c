@@ -59,11 +59,11 @@ void set(myword *A, int val, int i, int m, int N, int M) {
   A[ i*(M/64) + m/64 ] |= (1L << (m & 63)); // sets the specific bit to 1
   if(!val) {
     A[ i*(M/64) + m/64 ] ^= (1L << (m & 63));  // inverts the bit again because it should be zero
-    if( get(A,i,m,N,M) ) {exit(7);} // just making sure...
+    //if( get(A,i,m,N,M) ) {exit(7);} // just making sure...
   }
-  else{
-    if( ! get(A,i,m,N,M) ) exit(9);
-  }
+  //else{
+    //if( ! get(A,i,m,N,M) ) exit(9);
+  //}
 }
 
 void transpose(int N, int M,myword *A, myword *B) {
@@ -89,25 +89,27 @@ void transpose(int N, int M,myword *A, myword *B) {
 // GF2 + means= 0+0=0, 0+1=1, 1+0=1, 1+1=0 which is xor
 void MxMBinReference1(int N, int M, int K, myword *A, myword *B, myword *C)
 {
-    A = __builtin_assume_aligned(A, 32);
-    B = __builtin_assume_aligned(B, 32);
-    C = __builtin_assume_aligned(C, 32);
+    A = __builtin_assume_aligned(A, 64);
+    B = __builtin_assume_aligned(B,64);
+    C = __builtin_assume_aligned(C, 64);
     int i,j,k,i0,k0;
+    int const K64=K/64;
     int const b=128;
     #pragma omp parallel for private(i,j,k,i0,k0) shared(A, B,C, N,M,K) default(none)
-    for(i0=0; i0<N; i0+=b)
-    {
+    for(i0=0; i0<N; i0+=b) {
         int limI = i0+b;
-        for(k0=0; k0<N; k0+=b)
-        {
+        for(k0=0; k0<N; k0+=b) {
             int limK = k0+b;
             for(i=i0; i<limI; i++) { 
+                myword *iK = C+i*K64;
                 for(k=k0; k<limK; k++){
-                    if(get(A,i,k,N,K)) {
-                        for(j=0; j<M/64; j+=4) {
-                            //__m256i b = _mm256_load_si256((__m256i *) (B + k*(K/64) + j ));
-                            //__m256i c = _mm256_load_si256((__m256i *) (C + i*(K/64) + j ));
-                            _mm256_storeu_si256((__m256i*) (C + i*(N/64) + j), _mm256_xor_si256(_mm256_load_si256((__m256i *) (B + k*(K/64) + j )),  _mm256_load_si256((__m256i *) (C + i*(K/64) + j ))));
+                    myword *kK = B+k*K64;
+                    if(GET(A,i,k,N,K)) {
+                        for(j=0; j<K64; j+=4) {
+                            __m256i b = _mm256_load_si256((__m256i *) (kK + j ));
+                            __m256i c = _mm256_load_si256((__m256i *) (iK + j ));
+                            _mm256_store_si256((__m256i*) (iK + j), _mm256_xor_si256(b,c));
+                            //_mm256_store_si256((__m256i*) (iK + j), _mm256_xor_si256(_mm256_load_si256((__m256i *) (kK + j )),_mm256_load_si256((__m256i *) (iK + j ))));
                         }
                     }
                 }
@@ -119,29 +121,33 @@ void MxMBinReference1(int N, int M, int K, myword *A, myword *B, myword *C)
 
 void MxMBinBetter6(int N, int M, int K, myword *A, myword *B, myword *C, myword *Btrans) {
     transpose(N, M, B, Btrans);
-    A = __builtin_assume_aligned(A, 32);
-    C = __builtin_assume_aligned(C, 32);
-    Btrans = __builtin_assume_aligned(Btrans, 32);
+    A = __builtin_assume_aligned(A, 62);
+    C = __builtin_assume_aligned(C, 62);
+    Btrans = __builtin_assume_aligned(Btrans, 62);
+
     int i,j,i0,j0,k,dp;
     int const b = 64;
     int const K64 = K/64;
-    #pragma omp parallel for private(i,j,i0,j0,k,dp) shared(A, B,C, N,M,K)
+    __m256i c;
+    #pragma omp parallel for private(i,j,i0,j0,k,dp,c) shared(A, B,C, N,M,K)
     for(i0 = 0; i0<N; i0+=b) {
         int limI = i0+b;
         for(j0 = 0; j0<M; j0+=b) {
             int limJ = j0+b;
             for(i=i0; i<limI; i++) {
+                int iK = i*K64;
                 for(j=j0; j<limJ; j++) {
-                    __uint64_t cc[4];
-                    __m256i c =  _mm256_setzero_si256();
+                    int jK = j*K64;
+                    myword cc[4];
+                    c = _mm256_setzero_si256();
                     for(k = 0; k<K64; k+=4)
                     {
-                        __m256i a = _mm256_load_si256((__m256i *) &(A[ i*(K64) + k ]));
-                        __m256i b = _mm256_load_si256((__m256i *) &(Btrans[ j*(K64) + k ]));
+                        __m256i a = _mm256_load_si256((__m256i *) &(A[ iK + k ]));
+                        __m256i b = _mm256_load_si256((__m256i *) &(Btrans[ jK + k ]));
                         c = _mm256_xor_si256(_mm256_and_si256(a, b), c);
                     }
-                    _mm256_storeu_si256((__m256i*) cc, c);
-                    dp = __builtin_popcountl(cc[0] ^ cc[1] ^ cc[2] ^ cc[3]);
+                    _mm256_store_si256((__m256i*) cc, c);
+                    dp = __builtin_popcountl(cc[0]^cc[1]^cc[2]^cc[3]);
                     set(C,dp&1,i,j, N,M); 
                 }
             }
@@ -286,10 +292,10 @@ int main(int argc, char **argv) {
   myword seedB = atoi(argv[3]);
  
   // allocate some extra memory ...
-  myword *A = (myword *) _mm_malloc( N*N/8, 32 );
-  myword *B = (myword *) _mm_malloc( N*N/8, 32 );
-  myword *C = (myword *) _mm_malloc( N*N/8, 32 );
-  //myword *Btrans = (myword *) _mm_malloc( N*N/8, 32 );
+  myword *A = (myword *) _mm_malloc( N*N/8, 64 );
+  myword *B = (myword *) _mm_malloc( N*N/8, 64 );
+  myword *C = (myword *) _mm_malloc( N*N/8, 64 );
+  //myword *Btrans = (myword *) _mm_malloc( N*N/8, 64 );
 
   // initialize the matrices in parallel
 #pragma omp parallel sections shared(N,A,B,seedA,seedB) default(none)
