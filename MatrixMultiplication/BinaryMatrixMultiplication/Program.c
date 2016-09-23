@@ -125,30 +125,33 @@ void MxMBinBetter6(int N, int M, int K, myword *A, myword *B, myword *C, myword 
     C = __builtin_assume_aligned(C, 62);
     Btrans = __builtin_assume_aligned(Btrans, 62);
 
-    int i,j,i0,j0,k,dp;
+    int i,j,i0,j0,k;
     int const b = 64;
     int const K64 = K/64;
     __m256i c;
-    #pragma omp parallel for private(i,j,i0,j0,k,dp,c) shared(A, B,C, N,M,K)
+    #pragma omp parallel for private(i,j,i0,j0,k,c) shared(A, B,C, N,M,K)
     for(i0 = 0; i0<N; i0+=b) {
         int limI = i0+b;
         for(j0 = 0; j0<M; j0+=b) {
             int limJ = j0+b;
             for(i=i0; i<limI; i++) {
-                int iK = i*K64;
+                myword *iK = A + (i*K64);
+                myword *iKC = C + (i*K64);
                 for(j=j0; j<limJ; j++) {
-                    int jK = j*K64;
+                    myword *jK = Btrans + (j*K64);
                     myword cc[4];
                     c = _mm256_setzero_si256();
                     for(k = 0; k<K64; k+=4)
                     {
-                        __m256i a = _mm256_load_si256((__m256i *) &(A[ iK + k ]));
-                        __m256i b = _mm256_load_si256((__m256i *) &(Btrans[ jK + k ]));
+                        __m256i a = _mm256_load_si256((__m256i *) (iK + k ));
+                        __m256i b = _mm256_load_si256((__m256i *) (jK + k ));
                         c = _mm256_xor_si256(_mm256_and_si256(a, b), c);
                     }
                     _mm256_store_si256((__m256i*) cc, c);
-                    dp = __builtin_popcountl(cc[0]^cc[1]^cc[2]^cc[3]);
-                    set(C,dp&1,i,j, N,M); 
+                    iKC[j/64] |= (1L << (j & 63)); 
+                    if(!(__builtin_popcountl(cc[0]^cc[1]^cc[2]^cc[3])&1)) {
+                         iKC[j/64] ^= (1L << (j & 63)); 
+                    }
                 }
             }
         }
@@ -295,7 +298,7 @@ int main(int argc, char **argv) {
   myword *A = (myword *) _mm_malloc( N*N/8, 64 );
   myword *B = (myword *) _mm_malloc( N*N/8, 64 );
   myword *C = (myword *) _mm_malloc( N*N/8, 64 );
-  //myword *Btrans = (myword *) _mm_malloc( N*N/8, 64 );
+  myword *Btrans = (myword *) _mm_malloc( N*N/8, 64 );
 
   // initialize the matrices in parallel
 #pragma omp parallel sections shared(N,A,B,seedA,seedB) default(none)
@@ -309,8 +312,8 @@ int main(int argc, char **argv) {
       rndBinMx(N, N, B, seedB );
     }
   }
-  MxMBinReference1(N,N,N,A,B,C);
-  //MxMBinBetter6(N,N,N,A,B,C,Btrans);
+  //MxMBinReference1(N,N,N,A,B,C);
+  MxMBinBetter6(N,N,N,A,B,C,Btrans);
   //MxMBinBetter5(N,N,N,A,B,C,Btrans);
   //MxMBinBetter4(N,N,N,A,B,C,Btrans);
   //MxMBinBetter3(N,N,N,A,B,C,Btrans);
