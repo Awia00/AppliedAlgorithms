@@ -29,11 +29,45 @@ char *strrev(char *s, int slen) {
 }
 
 #define M(i, j, alen) (i * alen + j)
+void print_arr(int *m, int alen, int blen, char *a, char *b)
+{
+  int i, j;
+  for(i = -1; i<=alen; i++)
+  {
+    for(j = -1; j<=blen; j++)
+    {
+      if(i==-1) // print the first row of letters
+      {
+        if(j <= 0)
+          printf("%3c",' ');
+        else 
+          printf("%3c",b[j-1]);
+      }
+      else if(j==-1) // print the first column of letters
+      {
+        if(i <= 0)
+          printf("%3c",' ');
+        else
+          printf("%3c", a[i-1]);
+      }
+      else{ // print the matrix
+        printf("%3d", m[i * (blen + 1) + j]);
+      } 
+    }
+    printf("\n");
+  }
+}
+
+#define M(i, j, alen) (i * alen + j)
 
 char *LevenshteinDistance(mychar *a, mychar *b)
 {
-  int alen = strlen(a);
-  int blen = strlen(b);
+  int alen = strlen(a); 
+  int blen = strlen(b); 
+#ifndef CODEJUDGE
+  printf("\nalen: %d", alen);
+  printf("\nblen: %d", blen);
+#endif
 
   char *out = calloc(alen + blen, sizeof *out);
 
@@ -51,23 +85,42 @@ char *LevenshteinDistance(mychar *a, mychar *b)
        return out;
   }
 
-  int *m = malloc((alen + 1) * (blen + 1) * sizeof *m);
+  int *m = (int*) calloc ((alen + 1) * (blen + 1), sizeof *m);
+  //int *m = malloc((alen + 1) * (blen + 1) * sizeof *m);
 
+#ifndef CODEJUDGE
+  printf("\nEmpty matrix\n");
+  print_arr(m, alen, blen, a, b);
+#endif
+
+  // fill matrix
   int i,j;
-  for (i = 0; i < alen + 1; i++)
-      m[i * (alen+1)] = i;
+  for (i = 0; i <= alen; i++)
+      m[i*(blen+1)] = i;
 
-  for (i = 0; i < blen + 1; i++)
-      m[i] = i;
+  for (j = 0; j <= blen; j++)
+      m[j] = j;
 
+#ifndef CODEJUDGE
+  printf("\nFirst row and column\n");
+  print_arr(m, alen, blen, a, b);
+#endif
   for (i = 1; i <= alen; i++)
   {
       for (j = 1; j <= blen; j++)
       {
-          m[i * (alen + 1) + j] = MIN(m[(i-1) * (alen + 1) + j] + 1, MIN(m[i * (alen + 1) + j-1] + 1, m[(i-1) * (alen + 1) + j-1] + ((a[i-1] == b[j-1]) ? 0 : 1)));
+          m[i * (blen + 1) + j] = MIN(m[(i-1) * (blen + 1) + j] + 1, MIN(m[i * (blen + 1) + j-1] + 1, m[(i-1) * (blen + 1) + j-1] + ((a[i-1] == b[j-1]) ? 0 : 1)));
       }
   }
 
+  // Printing the matrix.
+
+#ifndef CODEJUDGE
+  printf("\nMatrix filled out\n");
+  print_arr(m, alen, blen, a, b);
+#endif
+
+  // backtrace
   i = alen; j = blen;
   myindex resultindex = 0;
   while (i > 0 || j > 0) {
@@ -82,8 +135,14 @@ char *LevenshteinDistance(mychar *a, mychar *b)
        resultindex += i;
        i = 0;
     } else {
-      int /*current = m[i * (alen + 1) + j],*/ up = m[(i-1) * (alen + 1) + j], diag = m[(i-1) * (alen + 1) + j-1], left = m[i * (alen + 1) + j-1];
-      if (up <= diag && up <= left) {
+      int current = m[i * (blen + 1) + j], up = m[(i-1) * (blen + 1) + j], diag = m[(i-1) * (blen + 1) + j-1], left = m[i * (blen + 1) + j-1];
+      if (diag == current && diag <= up && diag <= left)
+      {
+        out[resultindex++] = '|';
+        i--;
+        j--;
+      }
+      else if (up <= diag && up <= left) {
         out[resultindex++] = 'a';
         i--;
       } else if (diag <= up && diag <= left) {
