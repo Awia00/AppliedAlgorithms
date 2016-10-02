@@ -62,6 +62,11 @@ void print_arr(int *m, int alen, int blen, char *a, char *b)
 
 char *LevenshteinDistance(mychar *a, mychar *b)
 {
+  //swap a and b
+  mychar *swap = b;
+  b = a;
+  a = swap;
+
   int alen = strlen(a); 
   int blen = strlen(b); 
 #ifndef CODEJUDGE
@@ -126,16 +131,19 @@ char *LevenshteinDistance(mychar *a, mychar *b)
   while (i > 0 || j > 0) {
     if (i==0) {
        // a is empty, so fill rest of length with 'b'.
-       memset(out + resultindex, 'b', j);
+       memset(out + resultindex, 'a', j);
        resultindex += j;
        j = 0;
     } else if (j==0) {
        // see above.
-       memset(out + resultindex, 'a', i);
+       memset(out + resultindex, 'b', i);
        resultindex += i;
        i = 0;
     } else {
-      int current = m[i * (blen + 1) + j], up = m[(i-1) * (blen + 1) + j], diag = m[(i-1) * (blen + 1) + j-1], left = m[i * (blen + 1) + j-1];
+      int current = m[i     * (blen + 1) + j], 
+          up      = m[(i-1) * (blen + 1) + j], 
+          diag    = m[(i-1) * (blen + 1) + j-1], 
+          left    = m[i     * (blen + 1) + j-1];
       if (diag == current && diag <= up && diag <= left)
       {
         out[resultindex++] = '|';
@@ -143,14 +151,14 @@ char *LevenshteinDistance(mychar *a, mychar *b)
         j--;
       }
       else if (up <= diag && up <= left) {
-        out[resultindex++] = 'a';
+        out[resultindex++] = 'b';
         i--;
       } else if (diag <= up && diag <= left) {
         out[resultindex++] = '|';
         i--;
         j--;
       } else if (left <= up && left <= diag) {
-        out[resultindex++] = 'b';
+        out[resultindex++] = 'a';
         j--;
       } else {
         printf("You done goofed!\n");
