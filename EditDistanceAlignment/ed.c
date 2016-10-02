@@ -20,7 +20,7 @@ void edFullArray(myindex lena, myindex lenb, long seed) {
 #define MIN(a,b) ((a) < (b) ? a : b)
 
 char *strrev(char *s, int slen) {
-   char *res = malloc(slen * sizeof *res);
+   char *res = calloc((slen + 1), sizeof *res);
    int i;
    for (i=0; i<slen; i++) {
      res[i] = s[slen - i - 1];
