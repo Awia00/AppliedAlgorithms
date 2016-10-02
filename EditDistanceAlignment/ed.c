@@ -62,7 +62,7 @@ void print_arr(int *m, int alen, int blen, char *a, char *b)
 
 char *LevenshteinDistance(mychar *a, mychar *b)
 {
-  //swap a and b
+  //swap a and b : vi kan også bare bytte om på parameter rækkefølgen - but for now this is it
   mychar *swap = b;
   b = a;
   a = swap;
@@ -144,14 +144,14 @@ char *LevenshteinDistance(mychar *a, mychar *b)
           up      = m[(i-1) * (blen + 1) + j], 
           diag    = m[(i-1) * (blen + 1) + j-1], 
           left    = m[i     * (blen + 1) + j-1];
-      if (up <= diag && up <= left && up != current) {
+      if (up + 1 == current) {
         out[resultindex++] = 'b';
         i--;
-      } else if (diag <= up && diag <= left) {
+      } else if (diag + 1 == current || (diag == current && a[i-1] == b[j-1])) {
         out[resultindex++] = '|';
         i--;
         j--;
-      } else if (left <= up && left <= diag && left != current) {
+      } else if (left + 1 == current) {
         out[resultindex++] = 'a';
         j--;
       } else {
