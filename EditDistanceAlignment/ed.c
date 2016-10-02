@@ -144,20 +144,14 @@ char *LevenshteinDistance(mychar *a, mychar *b)
           up      = m[(i-1) * (blen + 1) + j], 
           diag    = m[(i-1) * (blen + 1) + j-1], 
           left    = m[i     * (blen + 1) + j-1];
-      if (diag == current && diag <= up && diag <= left)
-      {
-        out[resultindex++] = '|';
-        i--;
-        j--;
-      }
-      else if (up <= diag && up <= left) {
+      if (up <= diag && up <= left && up != current) {
         out[resultindex++] = 'b';
         i--;
       } else if (diag <= up && diag <= left) {
         out[resultindex++] = '|';
         i--;
         j--;
-      } else if (left <= up && left <= diag) {
+      } else if (left <= up && left <= diag && left != current) {
         out[resultindex++] = 'a';
         j--;
       } else {
