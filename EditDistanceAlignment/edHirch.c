@@ -1,6 +1,7 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include<string.h>
+#include "linkedList.c"
 
 #define MIN(a,b) ((a) < (b) ? a : b)
 #define M(i, j, N, M) ((i) * (M) + (j))
@@ -21,6 +22,21 @@ mychar *strsub(mychar *s, int start, int end) {
     mychar* sub = calloc(end - start + 1, sizeof *sub);
     memcpy(sub, s, end - start);
     return sub;
+}
+
+void print_list(node *res)
+{
+    printf("\n[");
+    while(res)
+    {
+        printf("%d,%d", res->x, res->y);
+        if(has_next(res))
+        {
+            printf("; ");
+        }
+        res = res->next;
+    }
+    printf("]\n");
 }
 
 void print_arr(int *m, int N, int M, mychar *a, mychar *b)
@@ -79,7 +95,7 @@ void fill_cost_table(int *m, int N, int M, mychar *a, mychar *b)
   }
 }
 
-char *levenshtein_distance(mychar *a, mychar *b)
+node *levenshtein_distance(mychar *a, mychar *b, int startX, int startY)
 {
   //swap a and b : vi kan også bare bytte om på parameter rækkefølgen - but for now this is it
   mychar *swap = b;
@@ -95,24 +111,17 @@ char *levenshtein_distance(mychar *a, mychar *b)
   printf("\nblen: %d", blen);
 #endif
 
-  char *out = calloc(alen + blen, sizeof *out);
-
   if (strcmp(a, b) == 0) {
-       memset(out, '|', alen);
-       return out;
-  }
-
-  if (alen == 0) {
-       memset(out, 'b', blen);
-       return out;
-  }
-  if (blen == 0) {
-       memset(out, 'a', alen);
-       return out;
+      int i;
+      node *res = 0;
+      for(i = alen-1; i>=0; i--)
+      {
+          res = add_node_front(res, startX + i, startY + i);
+      }
+       return res;
   }
 
   int *m = (int*) calloc (N * M, sizeof *m);
-  //int *m = malloc((alen + 1) * (blen + 1) * sizeof *m);
 
 #ifndef CODEJUDGE
   printf("\nEmpty matrix\n");
@@ -127,22 +136,22 @@ char *levenshtein_distance(mychar *a, mychar *b)
 #endif
 
   // backtrace
+  node *out = calloc(alen + blen, sizeof *out);
   int i = alen, j = blen;
-  myindex resultindex = 0;
   while (i > 0 && j > 0) {
     int current = m[M(i, j, N, M)],
         up      = m[M(i-1, j, N, M)],
         diag    = m[M(i-1, j-1, N, M)],
         left    = m[M(i, j-1, N, M)];
     if (up + 1 == current) {
-      out[resultindex++] = 'b';
+      out = add_node_front(out, startX + i-1, startY + j);
       i--;
     } else if (diag + 1 == current || (diag == current && a[i-1] == b[j-1])) {
-      out[resultindex++] = '|';
+      out = add_node_front(out, startX + i-1, startY + j-1);
       i--;
       j--;
     } else if (left + 1 == current) {
-      out[resultindex++] = 'a';
+      out = add_node_front(out, startX + i, startY + j-1);
       j--;
     } else {
       printf("You done goofed!\n");
@@ -152,17 +161,18 @@ char *levenshtein_distance(mychar *a, mychar *b)
 
   if (j!=0) {
       // a is empty, so fill rest of length with 'b'.
-      memset(out + resultindex, 'a', j);
-      resultindex += j;
-      j = 0;
+      for(i = j; i>0; i--)
+      {
+          out = add_node_front(out, startX, startY + i);
+      }
   } else if (i!=0) {
       // see above.
-      memset(out + resultindex, 'b', i);
-      resultindex += i;
-      i = 0;
+      for(j = i; j > 0; j--)
+      {
+          out = add_node_front(out, startX + j, startY);
+      }
   }
-
-  return strrev(out, resultindex);
+  return out;
 }
 
 int *nw_score(mychar *x, mychar *y){
@@ -183,7 +193,6 @@ int *nw_score(mychar *x, mychar *y){
         }
         printf("\n");
 #endif
-
     for(i=1;i<N;i++) {
         v1[0] = v0[0] + 1;
         for(j=1;j<M;j++) {
@@ -213,31 +222,19 @@ int *nw_score(mychar *x, mychar *y){
 }
 
 
-char *hirchbergs_align(mychar *x, mychar *y)
+node *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
 {
     int xlen = strlen(x);
     int ylen = strlen(y);
     // const int N = xlen + 1;
     // const int M = ylen + 1;
     
-    if (strcmp(x, y) == 0) {
-       mychar *out = calloc(xlen + 1, sizeof *out);
-       memset(out, '|', xlen);
-       return out;
+    if (xlen == 0 || ylen == 0 ||strcmp(x, y) == 0) {
+       return levenshtein_distance(x,y, startX, startY);
     }
-
-    if (xlen == 0) {
-        mychar *out = calloc(ylen + 1, sizeof *out);
-        memset(out, 'b', ylen);
-        return out;
+    else if (xlen <= 2 || ylen <= 2) {
+        return levenshtein_distance(x, y, startX, startY);
     }
-    if (ylen == 0) {
-        mychar *out = calloc(xlen + 1, sizeof *out);
-        memset(out, 'a', xlen);
-        return out;
-    }
-
-    if (xlen <= 2 || ylen <= 2) return levenshtein_distance(x, y);
 
     int xmid = xlen/2;
     mychar *left = strsub(x, 0, xmid + 1); // TODO: Check if +1
@@ -280,25 +277,26 @@ char *hirchbergs_align(mychar *x, mychar *y)
     printf("\n(xmid,ymid): (%d,%d)\n", xmid, ymid);
 #endif
     mychar *ytop = strsub(y, 0, ymid + 1); // TODO: Check if +1
-    mychar *out = hirchbergs_align(left, ytop); // left result
-    mychar *right_result = hirchbergs_align(x + xmid, y + ymid);
+    node *left_result = hirchbergs_align_rec(left, ytop, startX, startY); // left result
+    node *right_result = hirchbergs_align_rec(x + xmid, y + ymid, startX+xmid, startY+ymid);
 
-#ifndef CODEJUDGE
-    printf("(x,y): (%s,%s)\n", x, y);
-    printf("left: (x,y,result) = (%s, %s, %s)\n", left, ytop, out);
-    printf("right: (x,y,result) = (%s, %s, %s)\n", x + xmid, y + ymid, right_result);
+#ifndef ONLINE_JUDGE
+    print_list(left_result);
+    print_list(right_result);
 #endif
 
-    strcat(out, right_result + 1);
+    get_last(left_result)->next = right_result->next;
 
-#ifndef CODEJUDGE
-    printf("result: %s\n", out);
-#endif
-
-    free(left);
     free(ytop);
-    free(right_result);
-    return out;
+    return left_result;
+}
+
+char *hirchbergs_align(mychar *x, mychar *y)
+{
+    node *root = hirchbergs_align_rec(x, y, 0, 0);
+    print_list(root);
+    //
+    return "hej";
 }
 
 
