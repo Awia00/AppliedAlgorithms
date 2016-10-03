@@ -8,21 +8,8 @@
 typedef int myindex;
 typedef char mychar;
 
-mychar *a, *b;
-
-void edFullArray(myindex lena, myindex lenb, long seed) {
-  srand48(seed);
-  a = malloc((lena + 1) * sizeof a);
-  a[lena] = 0;
-  b = malloc((lenb + 1) * sizeof b);
-  b[lenb] = 0;
-  int i,j;
-  for(i=0;i<lena;i++) a[i] = (lrand48() & 15) + 'a';
-  for(j=0;j<lenb;j++) b[j] = (lrand48() & 15) + 'a';
-}
-
-char *strrev(char *s, int slen) {
-   char *res = calloc((slen + 1), sizeof *res);
+mychar *strrev(mychar *s, int slen) {
+   mychar *res = calloc((slen + 1), sizeof *res);
    int i;
    for (i=0; i<slen; i++) {
      res[i] = s[slen - i - 1];
@@ -30,7 +17,7 @@ char *strrev(char *s, int slen) {
    return res;
 }
 
-void print_arr(int *m, int N, int M, char *a, char *b)
+void print_arr(int *m, int N, int M, mychar *a, mychar *b)
 {
   int i, j;
   for(i = -1; i<N; i++)
@@ -86,7 +73,7 @@ void fill_cost_table(int *m, int N, int M, mychar *a, mychar *b)
   }
 }
 
-char *LevenshteinDistance(mychar *a, mychar *b)
+char *levenshtein_distance(mychar *a, mychar *b)
 {
   //swap a and b : vi kan også bare bytte om på parameter rækkefølgen - but for now this is it
   mychar *swap = b;
@@ -172,6 +159,81 @@ char *LevenshteinDistance(mychar *a, mychar *b)
   return strrev(out, resultindex);
 }
 
+int *nw_score(mychar *x, mychar *y){
+    int *test;
+    return test;
+}
+
+
+char *hirchbergs_align(mychar *x, mychar *y)
+{
+    int xlen = strlen(x);
+    int xmid = xlen/2;
+    int ylen = strlen(y);
+    // const int N = xlen + 1;
+    // const int M = ylen + 1;
+
+    char *out = calloc(xlen + ylen + 1, sizeof *out);
+    
+    if (strcmp(x, y) == 0) {
+       memset(out, '|', xlen);
+       return out;
+    }
+
+    if (xlen == 0) {
+        memset(out, 'b', ylen);
+        return out;
+    }
+    if (ylen == 0) {
+        memset(out, 'a', xlen);
+        return out;
+    }
+
+    if (xlen == 1 || ylen == 1) return levenshtein_distance(x, y);
+
+    mychar* left = calloc(xmid+1, sizeof *left);
+    mychar* right = calloc(xmid+1, sizeof *right);
+    memcpy(left, x, xmid);
+    int *scoreL = nw_score(left, y);
+    int *scoreR = nw_score(strrev(x+xmid, xlen-xmid), strrev(y, ylen));
+
+    int i,
+        current_min=scoreL[0] + scoreR[ylen-1],
+        min_index = 0;
+    for(i = 1; i < ylen; i++)
+    {
+        int score = scoreL[i] + scoreR[ylen-i-1];
+        if(current_min > score)
+        {
+            current_min = score;
+            min_index = i;
+        } 
+    }
+    int ymid = min_index;
+    
+    mychar* ytop = calloc(ymid+1, sizeof *ytop);
+    memcpy(ytop, y, ymid);
+    out = hirchbergs_align(left, ytop); // right result
+    mychar *right_result = hirchbergs_align(x + xmid + 1, y + ymid + 1);
+    strcat(out, right_result);
+    return out;
+}
+
+
+// Needed for seed method
+mychar *a, *b;
+
+void edFullArray(myindex lena, myindex lenb, long seed) {
+  srand48(seed);
+  a = malloc((lena + 1) * sizeof a);
+  a[lena] = 0;
+  b = malloc((lenb + 1) * sizeof b);
+  b[lenb] = 0;
+  int i,j;
+  for(i=0;i<lena;i++) a[i] = (lrand48() & 15) + 'a';
+  for(j=0;j<lenb;j++) b[j] = (lrand48() & 15) + 'a';
+}
+
 int main(int argc, char **argv) {
   if (argc == 3) { // Two strings
     a = argv[1];
@@ -187,7 +249,7 @@ int main(int argc, char **argv) {
     exit(2);
   }
 
-  char *result = LevenshteinDistance(a, b);
+  char *result = hirchbergs_align(a, b);
   printf("%s\n", result);
   return 0;
 }
