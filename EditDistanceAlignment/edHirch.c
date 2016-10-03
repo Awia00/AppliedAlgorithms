@@ -1,7 +1,69 @@
-#include "linkedList.c"
-#include<stdlib.h>
-#include<stdio.h>
-#include<string.h>
+#ifdef ONLINE_JUDGE
+    #include<stdlib.h>
+    #include<stdio.h>
+    #include<string.h>
+    typedef struct node {
+    int x;
+    int y;
+    struct node *next;
+    } node;
+
+    node *add_node_end(node *prev, int x, int y)
+    {
+        node *new = malloc(sizeof *new);
+        new->next = 0;
+        new->x = x;
+        new->y = y;
+        prev->next = new;
+        return prev;
+    }
+
+    node *add_node_front(node *next, int x, int y)
+    {
+        node *new = malloc(sizeof *new);
+        new->x = x;
+        new->y = y;
+        new->next = next;
+        return new;
+    }
+
+    int has_next(node *n)
+    {
+        return !!n->next; // if the pointer is 0 inverse it, and then inverse it again
+    }
+
+    node *get_last(node *n)
+    {
+        if(n)
+        {
+            while(has_next(n))
+            {
+                n = n->next;
+            }
+        }
+        return n;
+    }
+
+    int node_len(node *n)
+    {
+        int len = 0;
+        if(n)
+        {
+            len++;
+            while(has_next(n))
+            {
+                len++;
+                n = n->next;
+            }
+        }
+        return len;
+    }
+#else
+    #include "linkedList.c"
+    #include<stdlib.h>
+    #include<stdio.h>
+    #include<string.h>
+#endif
 
 #define MIN(a,b) ((a) < (b) ? a : b)
 #define M(i, j, N, M) ((i) * (M) + (j))
@@ -37,6 +99,26 @@ void print_list(node *res)
         res = res->next;
     }
     printf("]\n");
+}
+
+void print_single_arr(int *a, int N)
+{
+    printf("\n");
+    int i;
+    for(i = 0; i<N; i++)
+    {
+        printf("%d, ", a[i]);
+    }
+}
+
+void print_single_arr_rev(int *a, int N)
+{
+    printf("\n");
+    int i;
+    for(i = N-1; i>=0; i--)
+    {
+        printf("%d, ", a[i]);
+    }
 }
 
 void print_arr(int *m, int N, int M, mychar *a, mychar *b)
@@ -139,41 +221,43 @@ node *levenshtein_distance(mychar *a, mychar *b, int startX, int startY)
   node *out = 0;
   int i = alen, j = blen;
   while (i > 0 && j > 0) {
-      out = add_node_front(out, startX + i, startY + j);
+      out = add_node_front(out, startX + j, startY + i);
     int current = m[M(i, j, N, M)],
         up      = m[M(i-1, j, N, M)],
         diag    = m[M(i-1, j-1, N, M)],
         left    = m[M(i, j-1, N, M)];
     if (up + 1 == current) {
-      
       i--;
     } else if (diag + 1 == current || (diag == current && a[i-1] == b[j-1])) {
-      
       i--;
       j--;
     } else if (left + 1 == current) {
-      
       j--;
     } else {
       printf("You done goofed!\n");
       exit(45);
     }
   }
-  out = add_node_front(out, startX, startY);
+  out = add_node_front(out, startX + j, startY + i);
 
   if (j!=0) {
       // a is empty, so fill rest of length with 'b'.
-      for(i = j; i>0; i--)
+      for(i = j-1; i>=0; i--)
       {
           out = add_node_front(out, startX, startY + i);
       }
   } else if (i!=0) {
       // see above.
-      for(j = i; j > 0; j--)
+      for(j = i-1; j >= 0; j--)
       {
           out = add_node_front(out, startX + j, startY);
       }
   }
+  #ifndef ONLINE_JUDGE
+    printf("\nlevenshtein_distance on: x: %s, y: %s:", b, a);
+    printf("\nStartX: %d, StartY: %d", startX, startY); 
+    print_list(out);
+    #endif
   return out;
 }
 
@@ -239,7 +323,7 @@ node *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
     }
 
     int xmid = xlen/2;
-    mychar *left = strsub(x, 0, xmid + 1); // TODO: Check if +1
+    mychar *left = strsub(x, 0, xmid+1); // TODO: Check if +1
     mychar *rev_right = strrev(x+xmid, xlen-xmid);
     mychar *rev_y = strrev(y, ylen);
 
@@ -278,28 +362,117 @@ node *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
 #ifndef CODEJUDGE
     printf("\n(xmid,ymid): (%d,%d)\n", xmid, ymid);
 #endif
-    mychar *ytop = strsub(y, 0, ymid + 1); // TODO: Check if +1
+    mychar *ytop = strsub(y, 0, ymid+1); // TODO: Check if +1
     node *left_result = hirchbergs_align_rec(left, ytop, startX, startY); // left result
-    node *right_result = hirchbergs_align_rec(x + xmid, y + ymid, startX+xmid, startY+ymid);
+    node *right_result = hirchbergs_align_rec(x + xmid, y + ymid, startX+xmid, startY+ymid)->next->next;
 
 #ifndef ONLINE_JUDGE
+    printf("\n-------\ninput: X: %s, Y: %s", x, y); 
+    // print_single_arr(scoreL, ylen);
+    // print_single_arr_rev(scoreR, ylen);
+    printf("\nStartX: %d, StartY: %d",startX, startY); 
+    printf("\nSplit at: (xmid,ymid): (%d,%d)\n", startX+ xmid, startY+ ymid);
+    printf("left:"); 
     print_list(left_result);
+    printf("right:");
     print_list(right_result);
 #endif
 
-    get_last(left_result)->next = right_result->next;
+    get_last(left_result)->next = right_result;
+#ifndef ONLINE_JUDGE
+    printf("\nafter merge:\n"); print_list(left_result);
+#endif
+
 
     free(ytop);
     return left_result;
 }
 
+char *LevenshteinDistance(mychar *a, mychar *b)
+{
+  //swap a and b : vi kan også bare bytte om på parameter rækkefølgen - but for now this is it
+  mychar *swap = b;
+  b = a;
+  a = swap;
+
+  int alen = strlen(a);
+  int blen = strlen(b);
+  const int N = alen + 1;
+  const int M = blen + 1;
+
+  char *out = calloc(alen + blen, sizeof *out);
+
+  if (strcmp(a, b) == 0) {
+       memset(out, '|', alen);
+       return out;
+  }
+
+  if (alen == 0) {
+       memset(out, 'b', blen);
+       return out;
+  }
+  if (blen == 0) {
+       memset(out, 'a', alen);
+       return out;
+  }
+
+  int *m = (int*) calloc (N * M, sizeof *m);
+  //int *m = malloc((alen + 1) * (blen + 1) * sizeof *m);
+
+  fill_cost_table(m, N, M, a, b);
+
+#ifndef ONLINE_JUDGE
+  printf("\nMatrix filled out\n");
+  print_arr(m, N, M, a, b);
+#endif
+
+  // backtrace
+  int i = alen, j = blen;
+  myindex resultindex = 0;
+  while (i > 0 && j > 0) {
+    int current = m[M(i, j, N, M)],
+        up      = m[M(i-1, j, N, M)],
+        diag    = m[M(i-1, j-1, N, M)],
+        left    = m[M(i, j-1, N, M)];
+    if (up + 1 == current) {
+      out[resultindex++] = 'b';
+      i--;
+    } else if (diag + 1 == current || (diag == current && a[i-1] == b[j-1])) {
+      out[resultindex++] = '|';
+      i--;
+      j--;
+    } else if (left + 1 == current) {
+      out[resultindex++] = 'a';
+      j--;
+    } else {
+      printf("You done goofed!\n");
+      exit(45);
+    }
+  }
+
+  if (j!=0) {
+      // a is empty, so fill rest of length with 'b'.
+      memset(out + resultindex, 'a', j);
+      resultindex += j;
+      j = 0;
+  } else if (i!=0) {
+      // see above.
+      memset(out + resultindex, 'b', i);
+      resultindex += i;
+      i = 0;
+  }
+
+  return strrev(out, resultindex);
+}
+
+// Start of recoursive calls
 char *hirchbergs_align(mychar *x, mychar *y)
 {
     node *prev = hirchbergs_align_rec(x, y, 0, 0);
     
-#ifndef ONLINE_JUDGE
-    print_list(prev);
-#endif
+// #ifndef ONLINE_JUDGE
+//     print_list(prev);
+// #endif
 
     char *result = calloc(node_len(prev)+1, sizeof *result);
     int i =0;
@@ -315,14 +488,14 @@ char *hirchbergs_align(mychar *x, mychar *y)
                     // duplicate value go to next.
                 } else
                 {
-                    result[i++] = 'a';
+                    result[i++] = 'b';
                     // y movement == a
                 }
             } else
             {
                 if(prev->y == next->y)
                 {
-                    result[i++] = 'b';
+                    result[i++] = 'a';
                     // x movement == b
                 } else
                 {
@@ -333,6 +506,9 @@ char *hirchbergs_align(mychar *x, mychar *y)
         }
         prev = next;
     }
+
+    LevenshteinDistance(x, y);
+    printf("\n");
     return result;
 }
 
