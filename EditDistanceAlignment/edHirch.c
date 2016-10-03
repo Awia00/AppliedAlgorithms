@@ -318,7 +318,7 @@ node *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
     if (xlen == 0 || ylen == 0 ||strcmp(x, y) == 0) {
        return levenshtein_distance(x,y, startX, startY);
     }
-    else if (xlen <= 2 || ylen <= 2) {
+    else if (xlen <= 50 || ylen <= 50) {
         return levenshtein_distance(x, y, startX, startY);
     }
 
@@ -362,9 +362,21 @@ node *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
 #ifndef CODEJUDGE
     printf("\n(xmid,ymid): (%d,%d)\n", xmid, ymid);
 #endif
+
     mychar *ytop = strsub(y, 0, ymid); // TODO: Check if +1
-    node *left_result = hirchbergs_align_rec(left, ytop, startX, startY); // left result
-    node *right_result = hirchbergs_align_rec(x + xmid, y + ymid, startX+xmid, startY+ymid)->next;
+    node *left_result;
+    node *right_result;
+#pragma omp parallel
+ {
+ #pragma omp single
+ { 
+    #pragma omp task shared(left_result)
+    { left_result = hirchbergs_align_rec(left, ytop, startX, startY);} // left result
+    #pragma omp task shared(right_result)
+    right_result = hirchbergs_align_rec(x + xmid, y + ymid, startX+xmid, startY+ymid)->next;
+    #pragma omp taskwait
+ }
+ }
 
 #ifndef ONLINE_JUDGE
     printf("\n-------\ninput: X: %s, Y: %s", x, y); 
