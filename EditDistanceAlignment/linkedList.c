@@ -1,3 +1,4 @@
+#include<stdlib.h>
 
 typedef struct node {
   int x;

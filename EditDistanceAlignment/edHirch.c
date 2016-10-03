@@ -114,7 +114,7 @@ node *levenshtein_distance(mychar *a, mychar *b, int startX, int startY)
   if (strcmp(a, b) == 0) {
       int i;
       node *res = 0;
-      for(i = alen-1; i>=0; i--)
+      for(i = alen; i>=0; i--)
       {
           res = add_node_front(res, startX + i, startY + i);
       }
@@ -137,28 +137,29 @@ node *levenshtein_distance(mychar *a, mychar *b, int startX, int startY)
 
   // backtrace
   node *out = 0;
-  out = add_node_front(out, alen+startX, blen+startY);
   int i = alen, j = blen;
   while (i > 0 && j > 0) {
+      out = add_node_front(out, startX + i, startY + j);
     int current = m[M(i, j, N, M)],
         up      = m[M(i-1, j, N, M)],
         diag    = m[M(i-1, j-1, N, M)],
         left    = m[M(i, j-1, N, M)];
     if (up + 1 == current) {
-      out = add_node_front(out, startX + i-1, startY + j);
+      
       i--;
     } else if (diag + 1 == current || (diag == current && a[i-1] == b[j-1])) {
-      out = add_node_front(out, startX + i-1, startY + j-1);
+      
       i--;
       j--;
     } else if (left + 1 == current) {
-      out = add_node_front(out, startX + i, startY + j-1);
+      
       j--;
     } else {
       printf("You done goofed!\n");
       exit(45);
     }
   }
+  out = add_node_front(out, startX, startY);
 
   if (j!=0) {
       // a is empty, so fill rest of length with 'b'.
@@ -314,14 +315,14 @@ char *hirchbergs_align(mychar *x, mychar *y)
                     // duplicate value go to next.
                 } else
                 {
-                    result[i++] = 'b';
+                    result[i++] = 'a';
                     // y movement == a
                 }
             } else
             {
                 if(prev->y == next->y)
                 {
-                    result[i++] = 'a';
+                    result[i++] = 'b';
                     // x movement == b
                 } else
                 {
