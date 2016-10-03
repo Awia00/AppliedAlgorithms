@@ -69,6 +69,8 @@ char *LevenshteinDistance(mychar *a, mychar *b)
 
   int alen = strlen(a);
   int blen = strlen(b);
+  const int N = alen + 1;
+  const int M = blen + 1;
 #ifndef CODEJUDGE
   printf("\nalen: %d", alen);
   printf("\nblen: %d", blen);
@@ -90,7 +92,7 @@ char *LevenshteinDistance(mychar *a, mychar *b)
        return out;
   }
 
-  int *m = (int*) calloc ((alen + 1) * (blen + 1), sizeof *m);
+  int *m = (int*) calloc (N * M, sizeof *m);
   //int *m = malloc((alen + 1) * (blen + 1) * sizeof *m);
 
 #ifndef CODEJUDGE
@@ -101,10 +103,10 @@ char *LevenshteinDistance(mychar *a, mychar *b)
   // fill matrix
   int i,j;
   for (i = 0; i <= alen; i++)
-      m[M(i,0,alen+1,blen+1)] = i;
+      m[M(i, 0, N, M)] = i;
 
   for (j = 0; j <= blen; j++)
-      m[M(0,j,alen+1,blen+1)] = j;
+      m[M(0, j, N, M)] = j;
 
 #ifndef CODEJUDGE
   printf("\nFirst row and column\n");
@@ -114,10 +116,10 @@ char *LevenshteinDistance(mychar *a, mychar *b)
   {
       for (j = 1; j <= blen; j++)
       {
-          m[M(i, j, alen+1, blen+1)] = MIN(
-            m[M(i-1, j, alen+1, blen+1)] + 1, MIN(
-            m[M(i, j-1, alen+1, blen+1)] + 1,
-            m[M(i-1, j-1, alen+1, blen+1)] + ((a[i-1] == b[j-1]) ? 0 : 1))
+          m[M(i, j, N, M)] = MIN(
+            m[M(i-1, j, N, M)] + 1, MIN(
+            m[M(i, j-1, N, M)] + 1,
+            m[M(i-1, j-1, N, M)] + ((a[i-1] == b[j-1]) ? 0 : 1))
           );
       }
   }
@@ -126,17 +128,17 @@ char *LevenshteinDistance(mychar *a, mychar *b)
 
 #ifndef CODEJUDGE
   printf("\nMatrix filled out\n");
-  print_arr(m, alen, blen, a, b);
+  print_arr(m, N, M, a, b);
 #endif
 
   // backtrace
   i = alen; j = blen;
   myindex resultindex = 0;
   while (i > 0 && j > 0) {
-    int current = m[M(i, j, alen+1, blen+1)],
-        up      = m[M(i-1, j, alen+1, blen+1)],
-        diag    = m[M(i-1, j-1, alen+1, blen+1)],
-        left    = m[M(i, j-1, alen+1, blen+1)];
+    int current = m[M(i, j, N, M)],
+        up      = m[M(i-1, j, N, M)],
+        diag    = m[M(i-1, j-1, N, M)],
+        left    = m[M(i, j-1, N, M)];
     if (up + 1 == current) {
       out[resultindex++] = 'b';
       i--;
