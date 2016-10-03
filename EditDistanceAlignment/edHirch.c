@@ -1,7 +1,7 @@
+#include "linkedList.c"
 #include<stdlib.h>
 #include<stdio.h>
 #include<string.h>
-#include "linkedList.c"
 
 #define MIN(a,b) ((a) < (b) ? a : b)
 #define M(i, j, N, M) ((i) * (M) + (j))
@@ -136,7 +136,8 @@ node *levenshtein_distance(mychar *a, mychar *b, int startX, int startY)
 #endif
 
   // backtrace
-  node *out = calloc(alen + blen, sizeof *out);
+  node *out = 0;
+  out = add_node_front(out, alen+startX, blen+startY);
   int i = alen, j = blen;
   while (i > 0 && j > 0) {
     int current = m[M(i, j, N, M)],
@@ -293,10 +294,45 @@ node *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
 
 char *hirchbergs_align(mychar *x, mychar *y)
 {
-    node *root = hirchbergs_align_rec(x, y, 0, 0);
-    print_list(root);
-    //
-    return "hej";
+    node *prev = hirchbergs_align_rec(x, y, 0, 0);
+    
+#ifndef ONLINE_JUDGE
+    print_list(prev);
+#endif
+
+    char *result = calloc(node_len(prev)+1, sizeof *result);
+    int i =0;
+    while(prev)
+    {
+        node *next = prev->next;
+        if(next)
+        {
+            if(prev->x == next->x)
+            {
+                if(prev->y == next->y)
+                {
+                    // duplicate value go to next.
+                } else
+                {
+                    result[i++] = 'b';
+                    // y movement == a
+                }
+            } else
+            {
+                if(prev->y == next->y)
+                {
+                    result[i++] = 'a';
+                    // x movement == b
+                } else
+                {
+                    result[i++] = '|';
+                    //diag
+                }
+            }
+        }
+        prev = next;
+    }
+    return result;
 }
 
 

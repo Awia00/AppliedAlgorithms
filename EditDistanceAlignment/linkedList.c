@@ -40,3 +40,18 @@ node *get_last(node *n)
     }
     return n;
 }
+
+int node_len(node *n)
+{
+    int len = 0;
+    if(n)
+    {
+        len++;
+        while(has_next(n))
+        {
+            len++;
+            n = n->next;
+        }
+    }
+    return len;
+}
