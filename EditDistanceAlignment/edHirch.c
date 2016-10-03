@@ -323,7 +323,7 @@ node *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
     }
 
     int xmid = xlen/2;
-    mychar *left = strsub(x, 0, xmid+1); // TODO: Check if +1
+    mychar *left = strsub(x, 0, xmid); // TODO: Check if +1
     mychar *rev_right = strrev(x+xmid, xlen-xmid);
     mychar *rev_y = strrev(y, ylen);
 
@@ -362,9 +362,9 @@ node *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
 #ifndef CODEJUDGE
     printf("\n(xmid,ymid): (%d,%d)\n", xmid, ymid);
 #endif
-    mychar *ytop = strsub(y, 0, ymid+1); // TODO: Check if +1
+    mychar *ytop = strsub(y, 0, ymid); // TODO: Check if +1
     node *left_result = hirchbergs_align_rec(left, ytop, startX, startY); // left result
-    node *right_result = hirchbergs_align_rec(x + xmid, y + ymid, startX+xmid, startY+ymid)->next->next;
+    node *right_result = hirchbergs_align_rec(x + xmid, y + ymid, startX+xmid, startY+ymid)->next;
 
 #ifndef ONLINE_JUDGE
     printf("\n-------\ninput: X: %s, Y: %s", x, y); 
