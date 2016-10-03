@@ -96,7 +96,7 @@ char *LevenshteinDistance(mychar *a, mychar *b)
 
 #ifndef CODEJUDGE
   printf("\nEmpty matrix\n");
-  print_arr(m, alen, blen, a, b);
+  print_arr(m, N, M, a, b);
 #endif
 
   // fill matrix
@@ -109,11 +109,11 @@ char *LevenshteinDistance(mychar *a, mychar *b)
 
 #ifndef CODEJUDGE
   printf("\nFirst row and column\n");
-  print_arr(m, alen, blen, a, b);
+  print_arr(m, N, M, a, b);
 #endif
-  for (i = 1; i <= alen; i++)
+  for (i = 1; i < N; i++)
   {
-      for (j = 1; j <= blen; j++)
+      for (j = 1; j < M; j++)
       {
           m[M(i, j, N, M)] = MIN(
             m[M(i-1, j, N, M)] + 1, MIN(
