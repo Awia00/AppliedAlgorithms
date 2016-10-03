@@ -318,7 +318,7 @@ node *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
     if (xlen == 0 || ylen == 0 ||strcmp(x, y) == 0) {
        return levenshtein_distance(x,y, startX, startY);
     }
-    else if (xlen <= 50 || ylen <= 50) {
+    else if (xlen <= 100 || ylen <= 100) {
         return levenshtein_distance(x, y, startX, startY);
     }
 
@@ -366,18 +366,11 @@ node *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
     mychar *ytop = strsub(y, 0, ymid); // TODO: Check if +1
     node *left_result;
     node *right_result;
-#pragma omp parallel
- {
- #pragma omp single
- { 
+
     #pragma omp task shared(left_result)
     { left_result = hirchbergs_align_rec(left, ytop, startX, startY);} // left result
     #pragma omp task shared(right_result)
-    right_result = hirchbergs_align_rec(x + xmid, y + ymid, startX+xmid, startY+ymid)->next;
-    #pragma omp taskwait
- }
- }
-
+    { right_result = hirchbergs_align_rec(x + xmid, y + ymid, startX+xmid, startY+ymid)->next;} 
 #ifndef ONLINE_JUDGE
     printf("\n-------\ninput: X: %s, Y: %s", x, y); 
     // print_single_arr(scoreL, ylen);
@@ -389,8 +382,13 @@ node *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
     printf("right:");
     print_list(right_result);
 #endif
-
+    #pragma omp taskwait
     get_last(left_result)->next = right_result;
+ 
+
+
+
+    
 #ifndef ONLINE_JUDGE
     printf("\nafter merge:\n"); print_list(left_result);
 #endif
@@ -480,7 +478,10 @@ char *LevenshteinDistance(mychar *a, mychar *b)
 // Start of recoursive calls
 char *hirchbergs_align(mychar *x, mychar *y)
 {
-    node *prev = hirchbergs_align_rec(x, y, 0, 0);
+    node *prev;
+    #pragma omp parallel
+    #pragma omp single nowait
+    prev = hirchbergs_align_rec(x, y, 0, 0);
     
 // #ifndef ONLINE_JUDGE
 //     print_list(prev);
