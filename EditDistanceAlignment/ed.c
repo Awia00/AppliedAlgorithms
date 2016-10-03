@@ -2,6 +2,9 @@
 #include<stdio.h>
 #include<string.h>
 
+#define MIN(a,b) ((a) < (b) ? a : b)
+#define M(i, j, N, M) ((i) * (M) + (j))
+
 typedef int myindex;
 typedef char mychar;
 
@@ -18,8 +21,6 @@ void edFullArray(myindex lena, myindex lenb, long seed) {
   for(j=0;j<lenb;j++) b[j] = (lrand48() & 15) + 'a';
 }
 
-#define MIN(a,b) ((a) < (b) ? a : b)
-
 char *strrev(char *s, int slen) {
    char *res = calloc((slen + 1), sizeof *res);
    int i;
@@ -29,14 +30,12 @@ char *strrev(char *s, int slen) {
    return res;
 }
 
-#define M(i, j, alen, blen) ((i) * (blen) + (j))
-
-void print_arr(int *m, int alen, int blen, char *a, char *b)
+void print_arr(int *m, int N, int M, char *a, char *b)
 {
   int i, j;
-  for(i = -1; i<=alen; i++)
+  for(i = -1; i<N; i++)
   {
-    for(j = -1; j<=blen; j++)
+    for(j = -1; j<M; j++)
     {
       if(i==-1) // print the first row of letters
       {
@@ -53,7 +52,7 @@ void print_arr(int *m, int alen, int blen, char *a, char *b)
           printf("%3c", a[i-1]);
       }
       else{ // print the matrix
-        printf("%3d", m[M(i, j, alen+1, blen+1)]);
+        printf("%3d", m[M(i, j, N, M)]);
       }
     }
     printf("\n");
