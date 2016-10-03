@@ -244,13 +244,13 @@ node *levenshtein_distance(mychar *a, mychar *b, int startX, int startY)
       // a is empty, so fill rest of length with 'b'.
       for(i = j-1; i>=0; i--)
       {
-          out = add_node_front(out, startX, startY + i);
+          out = add_node_front(out, startX + i, startY );
       }
   } else if (i!=0) {
       // see above.
       for(j = i-1; j >= 0; j--)
       {
-          out = add_node_front(out, startX + j, startY);
+          out = add_node_front(out, startX , startY + j);
       }
   }
   #ifndef ONLINE_JUDGE
@@ -474,7 +474,7 @@ char *hirchbergs_align(mychar *x, mychar *y)
 //     print_list(prev);
 // #endif
 
-    char *result = calloc(node_len(prev)+1, sizeof *result);
+    char *result = calloc(node_len(prev)+2, sizeof *result);
     int i =0;
     while(prev)
     {
@@ -485,7 +485,7 @@ char *hirchbergs_align(mychar *x, mychar *y)
             {
                 if(prev->y == next->y)
                 {
-                    // duplicate value go to next.
+                    exit(46);
                 } else
                 {
                     result[i++] = 'b';
@@ -507,8 +507,10 @@ char *hirchbergs_align(mychar *x, mychar *y)
         prev = next;
     }
 
+#ifndef ONLINE_JUDGE
     LevenshteinDistance(x, y);
     printf("\n");
+#endif    
     return result;
 }
 
