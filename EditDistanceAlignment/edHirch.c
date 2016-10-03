@@ -17,6 +17,12 @@ mychar *strrev(mychar *s, int slen) {
    return res;
 }
 
+mychar *strsub(mychar *s, int start, int end) {
+    mychar* sub = calloc(end - start + 1, sizeof *sub);
+    memcpy(sub, s, end - start);
+    return sub;
+}
+
 void print_arr(int *m, int N, int M, mychar *a, mychar *b)
 {
   int i, j;
@@ -160,62 +166,138 @@ char *levenshtein_distance(mychar *a, mychar *b)
 }
 
 int *nw_score(mychar *x, mychar *y){
-    int *test;
-    return test;
+    int xlen = strlen(x), ylen = strlen(y), i, j, N = xlen+1, M = ylen+1;
+    int *v0 = calloc(ylen + 1, sizeof *v0);
+    int *v1 = calloc(ylen + 1, sizeof *v1);
+
+#ifndef CODEJUDGE
+    printf("x: %s\n", x);
+    printf("y: %s\n", y);
+#endif
+
+    for(j=1;j<M;j++) v0[j] = v0[j-1] + 1;
+
+#ifndef CODEJUDGE
+        for(j=0; j<M; j++) {
+            printf("%3d", v0[j]);
+        }
+        printf("\n");
+#endif
+
+    for(i=1;i<N;i++) {
+        v1[0] = v0[0] + 1;
+        for(j=1;j<M;j++) {
+            int sub = v0[j-1] + (x[i-1] == y[j-1] ? 0 : 1),
+                del = v0[j] + 1,
+                ins = v1[j-1] + 1;
+            v1[j] = MIN(sub, MIN(del, ins));
+        }
+        int *swap = v1;
+        v1 = v0;
+        v0 = swap;
+#ifndef CODEJUDGE
+        for(j=0; j<M; j++) {
+            printf("%3d", v0[j]);
+        }
+        printf("\n");
+#endif
+    } 
+
+    free(v1);
+
+#ifndef CODEJUDGE
+    printf("\n\n");
+#endif
+
+    return v0;
 }
 
 
 char *hirchbergs_align(mychar *x, mychar *y)
 {
     int xlen = strlen(x);
-    int xmid = xlen/2;
     int ylen = strlen(y);
     // const int N = xlen + 1;
     // const int M = ylen + 1;
-
-    char *out = calloc(xlen + ylen + 1, sizeof *out);
     
     if (strcmp(x, y) == 0) {
+       mychar *out = calloc(xlen + 1, sizeof *out);
        memset(out, '|', xlen);
        return out;
     }
 
     if (xlen == 0) {
+        mychar *out = calloc(ylen + 1, sizeof *out);
         memset(out, 'b', ylen);
         return out;
     }
     if (ylen == 0) {
+        mychar *out = calloc(xlen + 1, sizeof *out);
         memset(out, 'a', xlen);
         return out;
     }
 
-    if (xlen == 1 || ylen == 1) return levenshtein_distance(x, y);
+    if (xlen <= 2 || ylen <= 2) return levenshtein_distance(x, y);
 
-    mychar* left = calloc(xmid+1, sizeof *left);
-    mychar* right = calloc(xmid+1, sizeof *right);
-    memcpy(left, x, xmid);
+    int xmid = xlen/2;
+    mychar *left = strsub(x, 0, xmid + 1); // TODO: Check if +1
+    mychar *rev_right = strrev(x+xmid, xlen-xmid);
+    mychar *rev_y = strrev(y, ylen);
+
+#ifndef CODEJUDGE
+    printf("left: %s\n", left);
+    printf("rev_right: %s\n", rev_right);
+    printf("rev_y: %s\n", rev_y);
+#endif
+
     int *scoreL = nw_score(left, y);
-    int *scoreR = nw_score(strrev(x+xmid, xlen-xmid), strrev(y, ylen));
+    int *scoreR = nw_score(rev_right, rev_y);
 
     int i,
-        current_min=scoreL[0] + scoreR[ylen-1],
+        current_min=scoreL[0] + scoreR[ylen],
         min_index = 0;
-    for(i = 1; i < ylen; i++)
+
+#ifndef CODEJUDGE
+        printf("%3d", current_min);
+#endif
+
+    for(i = 1; i <= ylen; i++)
     {
-        int score = scoreL[i] + scoreR[ylen-i-1];
+        int score = scoreL[i] + scoreR[ylen-i];
+
+        // Hard > is used to get the topmost 'best' value.
         if(current_min > score)
         {
             current_min = score;
             min_index = i;
         } 
+#ifndef CODEJUDGE
+        printf("%3d", score);
+#endif
     }
     int ymid = min_index;
-    
-    mychar* ytop = calloc(ymid+1, sizeof *ytop);
-    memcpy(ytop, y, ymid);
-    out = hirchbergs_align(left, ytop); // right result
-    mychar *right_result = hirchbergs_align(x + xmid + 1, y + ymid + 1);
-    strcat(out, right_result);
+#ifndef CODEJUDGE
+    printf("\n(xmid,ymid): (%d,%d)\n", xmid, ymid);
+#endif
+    mychar *ytop = strsub(y, 0, ymid + 1); // TODO: Check if +1
+    mychar *out = hirchbergs_align(left, ytop); // left result
+    mychar *right_result = hirchbergs_align(x + xmid, y + ymid);
+
+#ifndef CODEJUDGE
+    printf("(x,y): (%s,%s)\n", x, y);
+    printf("left: (x,y,result) = (%s, %s, %s)\n", left, ytop, out);
+    printf("right: (x,y,result) = (%s, %s, %s)\n", x + xmid, y + ymid, right_result);
+#endif
+
+    strcat(out, right_result + 1);
+
+#ifndef CODEJUDGE
+    printf("result: %s\n", out);
+#endif
+
+    free(left);
+    free(ytop);
+    free(right_result);
     return out;
 }
 
