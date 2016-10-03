@@ -59,6 +59,33 @@ void print_arr(int *m, int N, int M, char *a, char *b)
   }
 }
 
+void fill_cost_table(int *m, int N, int M, mychar *a, mychar *b)
+{
+  int i,j;
+  for (i = 0; i < N; i++)
+      m[M(i, 0, N, M)] = i;
+
+  for (j = 0; j < M; j++)
+      m[M(0, j, N, M)] = j;
+
+#ifndef CODEJUDGE
+  printf("\nFirst row and column\n");
+  print_arr(m, N, M, a, b);
+#endif
+
+  for (i = 1; i < N; i++)
+  {
+      for (j = 1; j < M; j++)
+      {
+          m[M(i, j, N, M)] = MIN(
+            m[M(i-1, j, N, M)] + 1, MIN(
+            m[M(i, j-1, N, M)] + 1,
+            m[M(i-1, j-1, N, M)] + ((a[i-1] == b[j-1]) ? 0 : 1))
+          );
+      }
+  }
+}
+
 char *LevenshteinDistance(mychar *a, mychar *b)
 {
   //swap a and b : vi kan også bare bytte om på parameter rækkefølgen - but for now this is it
@@ -99,31 +126,7 @@ char *LevenshteinDistance(mychar *a, mychar *b)
   print_arr(m, N, M, a, b);
 #endif
 
-  // fill matrix
-  int i,j;
-  for (i = 0; i <= alen; i++)
-      m[M(i, 0, N, M)] = i;
-
-  for (j = 0; j <= blen; j++)
-      m[M(0, j, N, M)] = j;
-
-#ifndef CODEJUDGE
-  printf("\nFirst row and column\n");
-  print_arr(m, N, M, a, b);
-#endif
-  for (i = 1; i < N; i++)
-  {
-      for (j = 1; j < M; j++)
-      {
-          m[M(i, j, N, M)] = MIN(
-            m[M(i-1, j, N, M)] + 1, MIN(
-            m[M(i, j-1, N, M)] + 1,
-            m[M(i-1, j-1, N, M)] + ((a[i-1] == b[j-1]) ? 0 : 1))
-          );
-      }
-  }
-
-  // Printing the matrix.
+  fill_cost_table(m, N, M, a, b);
 
 #ifndef CODEJUDGE
   printf("\nMatrix filled out\n");
@@ -131,7 +134,7 @@ char *LevenshteinDistance(mychar *a, mychar *b)
 #endif
 
   // backtrace
-  i = alen; j = blen;
+  int i = alen, j = blen;
   myindex resultindex = 0;
   while (i > 0 && j > 0) {
     int current = m[M(i, j, N, M)],
