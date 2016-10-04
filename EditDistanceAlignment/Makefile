@@ -3,3 +3,6 @@ default: edHirch.c
 
 naive: edNaive.c
 	cc -Wall -O2 -o edN edNaive.c
+
+combined: program.c
+	cc -DCODEJUDGE -fopenmp -Wall -O2 -o program program.c
