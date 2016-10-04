@@ -210,10 +210,10 @@ linked_list *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
     // const int N = xlen + 1;
     // const int M = ylen + 1;
     
-    if (xlen == 0 || ylen == 0 ||strcmp(x, y) == 0) {
+    if (xlen == 0 || ylen == 0 ) {
         return levenshtein_distance(x,y, startX, startY);
     }
-    else if (xlen <= 100 || ylen <= 100) {
+    else if (xlen <= 100 || ylen <= 100 ||strcmp(x, y) == 0) {
         return levenshtein_distance(x, y, startX, startY);
     }
 
@@ -227,7 +227,7 @@ linked_list *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
     #pragma omp task shared(scoreL)
     scoreL = nw_score(left, y, xmid, ylen);
     #pragma omp task shared(scoreR)
-    scoreR = nw_score(rev_right, rev_y, xmid, ylen);
+    scoreR = nw_score(rev_right, rev_y, xlen-xmid, ylen);
     #pragma omp taskwait
     free(rev_right);
     free(rev_y);

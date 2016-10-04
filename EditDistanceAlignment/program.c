@@ -276,10 +276,10 @@ linked_list *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
     // const int N = xlen + 1;
     // const int M = ylen + 1;
     
-    if (xlen == 0 || ylen == 0 ||strcmp(x, y) == 0) {
+    if (xlen == 0 || ylen == 0 ) {
         return levenshtein_distance(x,y, startX, startY);
     }
-    else if (xlen <= 100 || ylen <= 100) {
+    else if (xlen <= 100 || ylen <= 100 ||strcmp(x, y) == 0) {
         return levenshtein_distance(x, y, startX, startY);
     }
 
