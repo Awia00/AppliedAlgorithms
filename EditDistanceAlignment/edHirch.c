@@ -1,69 +1,8 @@
-#ifdef ONLINE_JUDGE
-    #include<stdlib.h>
-    #include<stdio.h>
-    #include<string.h>
-    typedef struct node {
-    int x;
-    int y;
-    struct node *next;
-    } node;
 
-    node *add_node_end(node *prev, int x, int y)
-    {
-        node *new = malloc(sizeof *new);
-        new->next = 0;
-        new->x = x;
-        new->y = y;
-        prev->next = new;
-        return prev;
-    }
-
-    node *add_node_front(node *next, int x, int y)
-    {
-        node *new = malloc(sizeof *new);
-        new->x = x;
-        new->y = y;
-        new->next = next;
-        return new;
-    }
-
-    int has_next(node *n)
-    {
-        return !!n->next; // if the pointer is 0 inverse it, and then inverse it again
-    }
-
-    node *get_last(node *n)
-    {
-        if(n)
-        {
-            while(has_next(n))
-            {
-                n = n->next;
-            }
-        }
-        return n;
-    }
-
-    int node_len(node *n)
-    {
-        int len = 0;
-        if(n)
-        {
-            len++;
-            while(has_next(n))
-            {
-                len++;
-                n = n->next;
-            }
-        }
-        return len;
-    }
-#else
-    #include "linkedList.c"
-    #include<stdlib.h>
-    #include<stdio.h>
-    #include<string.h>
-#endif
+#include "linkedList.c"
+#include<stdlib.h>
+#include<stdio.h>
+#include<string.h>
 
 #define MIN(a,b) ((a) < (b) ? a : b)
 #define M(i, j, N, M) ((i) * (M) + (j))
@@ -86,17 +25,18 @@ mychar *strsub(mychar *s, int start, int end) {
     return sub;
 }
 
-void print_list(node *res)
+void print_list(linked_list *res)
 {
+    node *root = res->root;
     printf("\n[");
-    while(res)
+    while(root)
     {
-        printf("%d,%d", res->x, res->y);
-        if(has_next(res))
+        printf("%d,%d", root->x, root->y);
+        if(has_next(root))
         {
             printf("; ");
         }
-        res = res->next;
+        root = root->next;
     }
     printf("]\n");
 }
@@ -177,7 +117,7 @@ void fill_cost_table(int *m, int N, int M, mychar *a, mychar *b)
   }
 }
 
-node *levenshtein_distance(mychar *a, mychar *b, int startX, int startY)
+linked_list *levenshtein_distance(mychar *a, mychar *b, int startX, int startY)
 {
   //swap a and b : vi kan også bare bytte om på parameter rækkefølgen - but for now this is it
   mychar *swap = b;
@@ -195,12 +135,12 @@ node *levenshtein_distance(mychar *a, mychar *b, int startX, int startY)
 
   if (strcmp(a, b) == 0) {
       int i;
-      node *res = 0;
+	    linked_list *res = linked_list_new();
       for(i = alen; i>=0; i--)
       {
-          res = add_node_front(res, startX + i, startY + i);
+          linked_list_add_front(res, startX + i, startY + i);
       }
-       return res;
+      return res;
   }
 
   int *m = (int*) calloc (N * M, sizeof *m);
@@ -218,10 +158,10 @@ node *levenshtein_distance(mychar *a, mychar *b, int startX, int startY)
 #endif
 
   // backtrace
-  node *out = 0;
+  linked_list *out = linked_list_new();
   int i = alen, j = blen;
   while (i > 0 && j > 0) {
-      out = add_node_front(out, startX + j, startY + i);
+    linked_list_add_front(out, startX + j, startY + i);
     int current = m[M(i, j, N, M)],
         up      = m[M(i-1, j, N, M)],
         diag    = m[M(i-1, j-1, N, M)],
@@ -238,19 +178,19 @@ node *levenshtein_distance(mychar *a, mychar *b, int startX, int startY)
       exit(45);
     }
   }
-  out = add_node_front(out, startX + j, startY + i);
+  linked_list_add_front(out, startX + j, startY + i);
 
   if (j!=0) {
       // a is empty, so fill rest of length with 'b'.
       for(i = j-1; i>=0; i--)
       {
-          out = add_node_front(out, startX + i, startY );
+          linked_list_add_front(out, startX + i, startY);
       }
   } else if (i!=0) {
       // see above.
       for(j = i-1; j >= 0; j--)
       {
-          out = add_node_front(out, startX , startY + j);
+          linked_list_add_front(out, startX, startY + j);
       }
   }
   #ifndef ONLINE_JUDGE
@@ -308,7 +248,7 @@ int *nw_score(mychar *x, mychar *y){
 }
 
 
-node *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
+linked_list *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
 {
     int xlen = strlen(x);
     int ylen = strlen(y);
@@ -318,12 +258,12 @@ node *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
     if (xlen == 0 || ylen == 0 ||strcmp(x, y) == 0) {
        return levenshtein_distance(x,y, startX, startY);
     }
-    else if (xlen <= 100 || ylen <= 100) {
+    else if (xlen <= 3 || ylen <= 3) {
         return levenshtein_distance(x, y, startX, startY);
     }
 
     int xmid = xlen/2;
-    mychar *left = strsub(x, 0, xmid); // TODO: Check if +1
+    mychar *left = strsub(x, 0, xmid);
     mychar *rev_right = strrev(x+xmid, xlen-xmid);
     mychar *rev_y = strrev(y, ylen);
 
@@ -364,13 +304,13 @@ node *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
 #endif
 
     mychar *ytop = strsub(y, 0, ymid); // TODO: Check if +1
-    node *left_result;
-    node *right_result;
+    linked_list *left_result;
+    linked_list *right_result;
 
     #pragma omp task shared(left_result)
     { left_result = hirchbergs_align_rec(left, ytop, startX, startY);} // left result
     #pragma omp task shared(right_result)
-    { right_result = hirchbergs_align_rec(x + xmid, y + ymid, startX+xmid, startY+ymid)->next;} 
+    { right_result = hirchbergs_align_rec(x + xmid, y + ymid, startX+xmid, startY+ymid);} 
 #ifndef ONLINE_JUDGE
     printf("\n-------\ninput: X: %s, Y: %s", x, y); 
     // print_single_arr(scoreL, ylen);
@@ -383,11 +323,10 @@ node *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
     print_list(right_result);
 #endif
     #pragma omp taskwait
-    get_last(left_result)->next = right_result;
- 
+    right_result->root = right_result->root->next;
+    right_result->size--;
 
-
-
+    linked_list_append(left_result, right_result);
     
 #ifndef ONLINE_JUDGE
     printf("\nafter merge:\n"); print_list(left_result);
@@ -478,17 +417,19 @@ char *LevenshteinDistance(mychar *a, mychar *b)
 // Start of recoursive calls
 char *hirchbergs_align(mychar *x, mychar *y)
 {
+    linked_list *list;
     node *prev;
     #pragma omp parallel
     #pragma omp single nowait
-    prev = hirchbergs_align_rec(x, y, 0, 0);
+    list = hirchbergs_align_rec(x, y, 0, 0);
     
 // #ifndef ONLINE_JUDGE
 //     print_list(prev);
 // #endif
 
-    char *result = calloc(node_len(prev)+2, sizeof *result);
+    char *result = calloc(list->size+1, sizeof *result);
     int i =0;
+    prev = list->root;
     while(prev)
     {
         node *next = prev->next;
