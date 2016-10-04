@@ -71,5 +71,12 @@
 	
 	The Java Virtual Machine takes a small amount of time to start up, which is probably the reason that the Java programs are so much slower compared to the C program with small problem sizes. In the multi-threaded Java implementation, this situation is even worse because of the overhead of creating threads.
 
-	Although the multi-threaded Java implementation is better than the single-threaded C implementation it can be seen from \autoref{fig:plots} that the computation time still grows exponentially in the problem size. This is easily seen as the y-axis is logarithmic, and the plot of the multi-threaded Java implementation seems linear.
+	Although the multi-threaded Java implementation is better than the single-threaded C implementation it can be seen from \autoref{fig:plots} that the computation time still grows polynomially in the problem size. This is easily seen as the y-axis is logarithmic, and the plot of the multi-threaded Java implementation seems linear.
+
+% Appears to be instead of "it can be seen in the figure" - because the figure is finite.
+% Or even better: In the range that we have observed.
+% log-log: Will show the degree of the polynomial.
+
+% Remember to run the experiments multiple times, to make it possible to account for a variance in jitter.
+
 \end{document}
