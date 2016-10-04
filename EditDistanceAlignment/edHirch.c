@@ -14,7 +14,7 @@ mychar *strrev(mychar *s, int slen) {
    mychar *res = calloc((slen + 1), sizeof *res);
    int i;
    for (i=0; i<slen; i++) {
-     res[i] = s[slen - i - 1];
+       res[i] = s[slen - i - 1];
    }
    return res;
 }
@@ -63,142 +63,118 @@ void print_single_arr_rev(int *a, int N)
 
 void print_arr(int *m, int N, int M, mychar *a, mychar *b)
 {
-  int i, j;
-  for(i = -1; i<N; i++)
-  {
-    for(j = -1; j<M; j++)
+    int i, j;
+    for(i = -1; i<N; i++)
     {
-      if(i==-1) // print the first row of letters
-      {
-        if(j <= 0)
-          printf("%3c",' ');
-        else
-          printf("%3c",b[j-1]);
-      }
-      else if(j==-1) // print the first column of letters
-      {
-        if(i <= 0)
-          printf("%3c",' ');
-        else
-          printf("%3c", a[i-1]);
-      }
-      else{ // print the matrix
-        printf("%3d", m[M(i, j, N, M)]);
-      }
+        for(j = -1; j<M; j++)
+        {
+            if(i==-1) // print the first row of letters
+            {
+                if(j <= 0)
+                    printf("%3c",' ');
+                else
+                    printf("%3c",b[j-1]);
+            }
+            else if(j==-1) // print the first column of letters
+            {
+                if(i <= 0)
+                    printf("%3c",' ');
+                else
+                    printf("%3c", a[i-1]);
+            }
+            else{ // print the matrix
+              printf("%3d", m[M(i, j, N, M)]);
+            }
+        }
+        printf("\n");
     }
-    printf("\n");
-  }
 }
 
 void fill_cost_table(int *m, int N, int M, mychar *a, mychar *b)
 {
-  int i,j;
-  for (i = 0; i < N; i++)
-      m[M(i, 0, N, M)] = i;
+    int i,j;
+    for (i = 0; i < N; i++)
+        m[M(i, 0, N, M)] = i;
 
-  for (j = 0; j < M; j++)
-      m[M(0, j, N, M)] = j;
+    for (j = 0; j < M; j++)
+        m[M(0, j, N, M)] = j;
 
-#ifndef CODEJUDGE
-  printf("\nFirst row and column\n");
-  print_arr(m, N, M, a, b);
-#endif
-
-  for (i = 1; i < N; i++)
-  {
-      for (j = 1; j < M; j++)
-      {
-          m[M(i, j, N, M)] = MIN(
-            m[M(i-1, j, N, M)] + 1, MIN(
-            m[M(i, j-1, N, M)] + 1,
-            m[M(i-1, j-1, N, M)] + ((a[i-1] == b[j-1]) ? 0 : 1))
-          );
-      }
-  }
+    for (i = 1; i < N; i++)
+    {
+        for (j = 1; j < M; j++)
+        {
+            m[M(i, j, N, M)] = MIN(
+                m[M(i-1, j, N, M)] + 1, MIN(
+                m[M(i, j-1, N, M)] + 1,
+                m[M(i-1, j-1, N, M)] + ((a[i-1] == b[j-1]) ? 0 : 1))
+            );
+        }
+    }
 }
 
 linked_list *levenshtein_distance(mychar *a, mychar *b, int startX, int startY)
 {
-  //swap a and b : vi kan også bare bytte om på parameter rækkefølgen - but for now this is it
-  mychar *swap = b;
-  b = a;
-  a = swap;
+    //swap a and b : vi kan også bare bytte om på parameter rækkefølgen - but for now this is it
+    mychar *swap = b;
+    b = a;
+    a = swap;
 
-  int alen = strlen(a);
-  int blen = strlen(b);
-  const int N = alen + 1;
-  const int M = blen + 1;
-#ifndef CODEJUDGE
-  printf("\nalen: %d", alen);
-  printf("\nblen: %d", blen);
-#endif
+    int alen = strlen(a);
+    int blen = strlen(b);
+    const int N = alen + 1;
+    const int M = blen + 1;
 
-  if (strcmp(a, b) == 0) {
-      int i;
-	    linked_list *res = linked_list_new();
-      for(i = alen; i>=0; i--)
-      {
-          linked_list_add_front(res, startX + i, startY + i);
-      }
-      return res;
-  }
-
-  int *m = (int*) calloc (N * M, sizeof *m);
-
-#ifndef CODEJUDGE
-  printf("\nEmpty matrix\n");
-  print_arr(m, N, M, a, b);
-#endif
-
-  fill_cost_table(m, N, M, a, b);
-
-#ifndef CODEJUDGE
-  printf("\nMatrix filled out\n");
-  print_arr(m, N, M, a, b);
-#endif
-
-  // backtrace
-  linked_list *out = linked_list_new();
-  int i = alen, j = blen;
-  while (i > 0 && j > 0) {
-    linked_list_add_front(out, startX + j, startY + i);
-    int current = m[M(i, j, N, M)],
-        up      = m[M(i-1, j, N, M)],
-        diag    = m[M(i-1, j-1, N, M)],
-        left    = m[M(i, j-1, N, M)];
-    if (up + 1 == current) {
-      i--;
-    } else if (diag + 1 == current || (diag == current && a[i-1] == b[j-1])) {
-      i--;
-      j--;
-    } else if (left + 1 == current) {
-      j--;
-    } else {
-      printf("You done goofed!\n");
-      exit(45);
+    if (strcmp(a, b) == 0) {
+        int i;
+  	    linked_list *res = linked_list_new();
+        for(i = alen; i>=0; i--)
+        {
+            linked_list_add_front(res, startX + i, startY + i);
+        }
+        return res;
     }
-  }
-  linked_list_add_front(out, startX + j, startY + i);
 
-  if (j!=0) {
-      // a is empty, so fill rest of length with 'b'.
-      for(i = j-1; i>=0; i--)
-      {
-          linked_list_add_front(out, startX + i, startY);
-      }
-  } else if (i!=0) {
-      // see above.
-      for(j = i-1; j >= 0; j--)
-      {
-          linked_list_add_front(out, startX, startY + j);
-      }
-  }
-  #ifndef ONLINE_JUDGE
-    printf("\nlevenshtein_distance on: x: %s, y: %s:", b, a);
-    printf("\nStartX: %d, StartY: %d", startX, startY); 
-    print_list(out);
-    #endif
-  return out;
+    int *m = (int*) calloc (N * M, sizeof *m);
+
+    fill_cost_table(m, N, M, a, b);
+
+    // backtrace
+    linked_list *out = linked_list_new();
+    int i = alen, j = blen;
+    while (i > 0 && j > 0) {
+        linked_list_add_front(out, startX + j, startY + i);
+        int current = m[M(i, j, N, M)],
+            up      = m[M(i-1, j, N, M)],
+            diag    = m[M(i-1, j-1, N, M)],
+            left    = m[M(i, j-1, N, M)];
+        if (up + 1 == current) {
+            i--;
+        } else if (diag + 1 == current || (diag == current && a[i-1] == b[j-1])) {
+            i--;
+            j--;
+        } else if (left + 1 == current) {
+            j--;
+        } else {
+            printf("You done goofed!\n");
+            exit(45);
+        }
+    }
+    linked_list_add_front(out, startX + j, startY + i);
+
+    if (j!=0) {
+        // a is empty, so fill rest of length with 'b'.
+        for(i = j-1; i>=0; i--)
+        {
+            linked_list_add_front(out, startX + i, startY);
+        }
+    } else if (i!=0) {
+        // see above.
+        for(j = i-1; j >= 0; j--)
+        {
+            linked_list_add_front(out, startX, startY + j);
+        }
+    }
+    return out;
 }
 
 int *nw_score(mychar *x, mychar *y){
@@ -206,19 +182,8 @@ int *nw_score(mychar *x, mychar *y){
     int *v0 = calloc(ylen + 1, sizeof *v0);
     int *v1 = calloc(ylen + 1, sizeof *v1);
 
-#ifndef CODEJUDGE
-    printf("x: %s\n", x);
-    printf("y: %s\n", y);
-#endif
-
     for(j=1;j<M;j++) v0[j] = v0[j-1] + 1;
 
-#ifndef CODEJUDGE
-        for(j=0; j<M; j++) {
-            printf("%3d", v0[j]);
-        }
-        printf("\n");
-#endif
     for(i=1;i<N;i++) {
         v1[0] = v0[0] + 1;
         for(j=1;j<M;j++) {
@@ -230,19 +195,9 @@ int *nw_score(mychar *x, mychar *y){
         int *swap = v1;
         v1 = v0;
         v0 = swap;
-#ifndef CODEJUDGE
-        for(j=0; j<M; j++) {
-            printf("%3d", v0[j]);
-        }
-        printf("\n");
-#endif
     } 
 
     free(v1);
-
-#ifndef CODEJUDGE
-    printf("\n\n");
-#endif
 
     return v0;
 }
@@ -256,7 +211,7 @@ linked_list *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
     // const int M = ylen + 1;
     
     if (xlen == 0 || ylen == 0 ||strcmp(x, y) == 0) {
-       return levenshtein_distance(x,y, startX, startY);
+        return levenshtein_distance(x,y, startX, startY);
     }
     else if (xlen <= 3 || ylen <= 3) {
         return levenshtein_distance(x, y, startX, startY);
@@ -267,22 +222,12 @@ linked_list *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
     mychar *rev_right = strrev(x+xmid, xlen-xmid);
     mychar *rev_y = strrev(y, ylen);
 
-#ifndef CODEJUDGE
-    printf("left: %s\n", left);
-    printf("rev_right: %s\n", rev_right);
-    printf("rev_y: %s\n", rev_y);
-#endif
-
     int *scoreL = nw_score(left, y);
     int *scoreR = nw_score(rev_right, rev_y);
 
     int i,
         current_min=scoreL[0] + scoreR[ylen],
         min_index = 0;
-
-#ifndef CODEJUDGE
-        printf("%3d", current_min);
-#endif
 
     for(i = 1; i <= ylen; i++)
     {
@@ -294,14 +239,8 @@ linked_list *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
             current_min = score;
             min_index = i;
         } 
-#ifndef CODEJUDGE
-        printf("%3d", score);
-#endif
     }
     int ymid = min_index;
-#ifndef CODEJUDGE
-    printf("\n(xmid,ymid): (%d,%d)\n", xmid, ymid);
-#endif
 
     mychar *ytop = strsub(y, 0, ymid); // TODO: Check if +1
     linked_list *left_result;
@@ -311,107 +250,86 @@ linked_list *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
     { left_result = hirchbergs_align_rec(left, ytop, startX, startY);} // left result
     #pragma omp task shared(right_result)
     { right_result = hirchbergs_align_rec(x + xmid, y + ymid, startX+xmid, startY+ymid);} 
-#ifndef ONLINE_JUDGE
-    printf("\n-------\ninput: X: %s, Y: %s", x, y); 
-    // print_single_arr(scoreL, ylen);
-    // print_single_arr_rev(scoreR, ylen);
-    printf("\nStartX: %d, StartY: %d",startX, startY); 
-    printf("\nSplit at: (xmid,ymid): (%d,%d)\n", startX+ xmid, startY+ ymid);
-    printf("left:"); 
-    print_list(left_result);
-    printf("right:");
-    print_list(right_result);
-#endif
     #pragma omp taskwait
     right_result->root = right_result->root->next;
     right_result->size--;
 
     linked_list_append(left_result, right_result);
     
-#ifndef ONLINE_JUDGE
-    printf("\nafter merge:\n"); print_list(left_result);
-#endif
-
-
     free(ytop);
     return left_result;
 }
 
 char *LevenshteinDistance(mychar *a, mychar *b)
 {
-  //swap a and b : vi kan også bare bytte om på parameter rækkefølgen - but for now this is it
-  mychar *swap = b;
-  b = a;
-  a = swap;
+    //swap a and b : vi kan også bare bytte om på parameter rækkefølgen - but for now this is it
+    mychar *swap = b;
+    b = a;
+    a = swap;
 
-  int alen = strlen(a);
-  int blen = strlen(b);
-  const int N = alen + 1;
-  const int M = blen + 1;
+    int alen = strlen(a);
+    int blen = strlen(b);
+    const int N = alen + 1;
+    const int M = blen + 1;
 
-  char *out = calloc(alen + blen, sizeof *out);
+    char *out = calloc(alen + blen, sizeof *out);
 
-  if (strcmp(a, b) == 0) {
-       memset(out, '|', alen);
-       return out;
-  }
-
-  if (alen == 0) {
-       memset(out, 'b', blen);
-       return out;
-  }
-  if (blen == 0) {
-       memset(out, 'a', alen);
-       return out;
-  }
-
-  int *m = (int*) calloc (N * M, sizeof *m);
-  //int *m = malloc((alen + 1) * (blen + 1) * sizeof *m);
-
-  fill_cost_table(m, N, M, a, b);
-
-#ifndef ONLINE_JUDGE
-  printf("\nMatrix filled out\n");
-  print_arr(m, N, M, a, b);
-#endif
-
-  // backtrace
-  int i = alen, j = blen;
-  myindex resultindex = 0;
-  while (i > 0 && j > 0) {
-    int current = m[M(i, j, N, M)],
-        up      = m[M(i-1, j, N, M)],
-        diag    = m[M(i-1, j-1, N, M)],
-        left    = m[M(i, j-1, N, M)];
-    if (up + 1 == current) {
-      out[resultindex++] = 'b';
-      i--;
-    } else if (diag + 1 == current || (diag == current && a[i-1] == b[j-1])) {
-      out[resultindex++] = '|';
-      i--;
-      j--;
-    } else if (left + 1 == current) {
-      out[resultindex++] = 'a';
-      j--;
-    } else {
-      printf("You done goofed!\n");
-      exit(45);
+    if (strcmp(a, b) == 0) {
+        memset(out, '|', alen);
+        return out;
     }
-  }
 
-  if (j!=0) {
-      // a is empty, so fill rest of length with 'b'.
-      memset(out + resultindex, 'a', j);
-      resultindex += j;
-      j = 0;
-  } else if (i!=0) {
-      // see above.
-      memset(out + resultindex, 'b', i);
-      resultindex += i;
-      i = 0;
-  }
+    if (alen == 0) {
+        memset(out, 'b', blen);
+        return out;
+    }
+    if (blen == 0) {
+        memset(out, 'a', alen);
+        return out;
+    }
 
-  return strrev(out, resultindex);
+    int *m = (int*) calloc (N * M, sizeof *m);
+    //int *m = malloc((alen + 1) * (blen + 1) * sizeof *m);
+
+    fill_cost_table(m, N, M, a, b);
+
+    // backtrace
+    int i = alen, j = blen;
+    myindex resultindex = 0;
+    while (i > 0 && j > 0) {
+        int current = m[M(i, j, N, M)],
+            up      = m[M(i-1, j, N, M)],
+            diag    = m[M(i-1, j-1, N, M)],
+            left    = m[M(i, j-1, N, M)];
+        if (up + 1 == current) {
+            out[resultindex++] = 'b';
+            i--;
+        } else if (diag + 1 == current || (diag == current && a[i-1] == b[j-1])) {
+            out[resultindex++] = '|';
+            i--;
+            j--;
+        } else if (left + 1 == current) {
+            out[resultindex++] = 'a';
+            j--;
+        } else {
+            printf("You done goofed!\n");
+            exit(45);
+        }
+    }
+
+    if (j!=0) {
+        // a is empty, so fill rest of length with 'b'.
+        memset(out + resultindex, 'a', j);
+        resultindex += j;
+        j = 0;
+    } else if (i!=0) {
+        // see above.
+        memset(out + resultindex, 'b', i);
+        resultindex += i;
+        i = 0;
+    }
+
+    return strrev(out, resultindex);
 }
 
 // Start of recoursive calls
@@ -461,10 +379,6 @@ char *hirchbergs_align(mychar *x, mychar *y)
         prev = next;
     }
 
-#ifndef ONLINE_JUDGE
-    LevenshteinDistance(x, y);
-    printf("\n");
-#endif    
     return result;
 }
 
@@ -473,32 +387,32 @@ char *hirchbergs_align(mychar *x, mychar *y)
 mychar *a, *b;
 
 void edFullArray(myindex lena, myindex lenb, long seed) {
-  srand48(seed);
-  a = malloc((lena + 1) * sizeof a);
-  a[lena] = 0;
-  b = malloc((lenb + 1) * sizeof b);
-  b[lenb] = 0;
-  int i,j;
-  for(i=0;i<lena;i++) a[i] = (lrand48() & 15) + 'a';
-  for(j=0;j<lenb;j++) b[j] = (lrand48() & 15) + 'a';
+    srand48(seed);
+    a = malloc((lena + 1) * sizeof a);
+    a[lena] = 0;
+    b = malloc((lenb + 1) * sizeof b);
+    b[lenb] = 0;
+    int i,j;
+    for(i=0;i<lena;i++) a[i] = (lrand48() & 15) + 'a';
+    for(j=0;j<lenb;j++) b[j] = (lrand48() & 15) + 'a';
 }
 
 int main(int argc, char **argv) {
-  if (argc == 3) { // Two strings
-    a = argv[1];
-    b = argv[2];
-  } else if (argc == 4) {
-    myindex slen = atoi(argv[1]);
-    myindex tlen = atoi(argv[2]);
-    long seed = atol(argv[3]);
+    if (argc == 3) { // Two strings
+        a = argv[1];
+        b = argv[2];
+    } else if (argc == 4) {
+        myindex slen = atoi(argv[1]);
+        myindex tlen = atoi(argv[2]);
+        long seed = atol(argv[3]);
 
-    edFullArray(slen, tlen, seed);
-  } else {
-    printf("Wrong amount of arguments!\n");
-    exit(2);
-  }
+        edFullArray(slen, tlen, seed);
+    } else {
+        printf("Wrong amount of arguments!\n");
+        exit(2);
+    }
 
-  char *result = hirchbergs_align(a, b);
-  printf("%s\n", result);
-  return 0;
+    char *result = hirchbergs_align(a, b);
+    printf("%s\n", result);
+    return 0;
 }
