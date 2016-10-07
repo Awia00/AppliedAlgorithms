@@ -1,5 +1,4 @@
 
-#include "linkedList.c"
 #include<stdlib.h>
 #include<stdio.h>
 #include<string.h>
@@ -23,22 +22,6 @@ mychar *strsub(mychar *s, int start, int end) {
     mychar* sub = calloc(end - start + 1, sizeof *sub);
     memcpy(sub, s, end - start);
     return sub;
-}
-
-void print_list(linked_list *res)
-{
-    node *root = res->root;
-    printf("\n[");
-    while(root)
-    {
-        printf("%d,%d", root->x, root->y);
-        if(has_next(root))
-        {
-            printf("; ");
-        }
-        root = root->next;
-    }
-    printf("]\n");
 }
 
 void print_single_arr(int *a, int N)
@@ -112,26 +95,25 @@ void fill_cost_table(int *m, int N, int M, mychar *a, mychar *b)
     }
 }
 
-linked_list *levenshtein_distance(mychar *a, mychar *b, int startX, int startY)
+void levenshtein_distance(mychar *a, mychar *b, int xlen, int ylen, int startX, int startY, int *path_points)
 {
     //swap a and b : vi kan også bare bytte om på parameter rækkefølgen - but for now this is it
     mychar *swap = b;
     b = a;
     a = swap;
 
-    int alen = strlen(a);
-    int blen = strlen(b);
+    int alen = ylen;
+    int blen = xlen;
     const int N = alen + 1;
     const int M = blen + 1;
 
     if (strcmp(a, b) == 0) {
         int i;
-  	    linked_list *res = linked_list_new();
         for(i = alen; i>=0; i--)
         {
-            linked_list_add_front(res, startX + i, startY + i);
+            path_points[startX + i + startY + i] = startX + i;
         }
-        return res;
+        return;
     }
 
     int *m = (int*) calloc (N * M, sizeof *m);
@@ -139,10 +121,9 @@ linked_list *levenshtein_distance(mychar *a, mychar *b, int startX, int startY)
     fill_cost_table(m, N, M, a, b);
 
     // backtrace
-    linked_list *out = linked_list_new();
     int i = alen, j = blen;
     while (i > 0 && j > 0) {
-        linked_list_add_front(out, startX + j, startY + i);
+        path_points[startX + j + startY + i] = startX + j;
         int current = m[M(i, j, N, M)],
             up      = m[M(i-1, j, N, M)],
             diag    = m[M(i-1, j-1, N, M)],
@@ -159,22 +140,21 @@ linked_list *levenshtein_distance(mychar *a, mychar *b, int startX, int startY)
             exit(45);
         }
     }
-    linked_list_add_front(out, startX + j, startY + i);
+    path_points[startX + j + startY + i] = startX + j;
 
     if (j!=0) {
         // a is empty, so fill rest of length with 'b'.
         for(i = j-1; i>=0; i--)
         {
-            linked_list_add_front(out, startX + i, startY);
+            path_points[startX + i + startY] = startX + i;
         }
     } else if (i!=0) {
         // see above.
         for(j = i-1; j >= 0; j--)
         {
-            linked_list_add_front(out, startX, startY + j);
+            path_points[startX + startY + j] = startX;
         }
     }
-    return out;
 }
 
 int *nw_score(mychar *x, mychar *y, int xlen, int ylen){
@@ -203,15 +183,11 @@ int *nw_score(mychar *x, mychar *y, int xlen, int ylen){
 }
 
 
-linked_list *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
+void hirchbergs_align_rec(mychar *x, mychar *y, int xlen, int ylen, int startX, int startY, int *path_points)
 {
-    int xlen = strlen(x);
-    int ylen = strlen(y);
-    // const int N = xlen + 1;
-    // const int M = ylen + 1;
-    
     if (xlen <= 100 || ylen <= 100 ||strcmp(x, y) == 0) {
-        return levenshtein_distance(x, y, startX, startY);
+        levenshtein_distance(x, y, xlen, ylen, startX, startY, path_points);
+        return;
     }
 
     int xmid = xlen/2;
@@ -248,70 +224,64 @@ linked_list *hirchbergs_align_rec(mychar *x, mychar *y, int startX, int startY)
     free(scoreR);
     int ymid = min_index;
 
-    mychar *ytop = strsub(y, 0, ymid); // TODO: Check if +1
-    linked_list *left_result;
-    linked_list *right_result;
+    mychar *ytop = strsub(y, 0, ymid);
 
-    #pragma omp task shared(left_result)
-    { left_result = hirchbergs_align_rec(left, ytop, startX, startY);} // left result
-    #pragma omp task shared(right_result)
-    { right_result = hirchbergs_align_rec(x + xmid, y + ymid, startX+xmid, startY+ymid);} 
+    #pragma omp task
+    { hirchbergs_align_rec(left, ytop, xmid, ymid, startX, startY, path_points);} // left result
+    #pragma omp task
+    { hirchbergs_align_rec(x + xmid, y + ymid, xlen - xmid, ylen - ymid, startX+xmid, startY+ymid, path_points);} 
     #pragma omp taskwait
-    right_result->root = right_result->root->next;
-    right_result->size--;
 
-    linked_list_append(left_result, right_result);
-    
     free(ytop);
     free(left);
-    return left_result;
 }
 
 // Start of recoursive calls
 char *hirchbergs_align(mychar *x, mychar *y)
 {
-    linked_list *list;
-    node *prev;
+    int xlen = strlen(x), ylen = strlen(y);
+    int path_points[xlen + ylen + 1];
+    int index, k;
+    for (k = 0; k < xlen + ylen; k++) {
+        path_points[k] = -1;
+    }
+    path_points[xlen + ylen] = xlen;
     #pragma omp parallel
     #pragma omp single nowait
-    list = hirchbergs_align_rec(x, y, 0, 0);
-    
-// #ifndef ONLINE_JUDGE
-//     print_list(prev);
-// #endif
+    hirchbergs_align_rec(x, y, xlen, ylen, 0, 0, path_points);
 
-    char *result = calloc(list->size+1, sizeof *result);
-    int i =0;
-    prev = list->root;
-    while(prev)
-    {
-        node *next = prev->next;
-        if(next)
-        {
-            if(prev->x == next->x)
-            {
-                if(prev->y == next->y)
-                {
-                    exit(46);
-                } else
-                {
-                    result[i++] = 'b';
-                    // y movement == a
+#ifndef CODEJUDGE
+    for(k=0; k <= xlen + ylen; k++) {
+       printf("%3d", path_points[k]);
+    }
+    printf("\n");
+#endif
+
+    char *result = calloc(xlen + ylen +1, sizeof *result);
+    index = 0;
+    int last_i = 0, last_j = 0, i, j;
+    for (k = 1; k <= xlen + ylen; k++) {
+        i = path_points[k];
+        if (path_points[k] != -1) {
+            j = k - i;
+            if (i == last_i) {
+                if (j == last_j) {
+                    printf("Goofed 46"); exit(46);
+                } else {
+                    // j changed.
+                    result[index++] = 'b';
                 }
-            } else
-            {
-                if(prev->y == next->y)
-                {
-                    result[i++] = 'a';
-                    // x movement == b
-                } else
-                {
-                    result[i++] = '|';
-                    //diag
+            } else {
+                if (j == last_j) {
+                    // i changed.
+                    result[index++] = 'a';
+                } else {
+                    // both changed
+                    result[index++] = '|';
                 }
             }
+            last_i = i; last_j = j;
         }
-        prev = next;
     }
 
     return result;
@@ -349,5 +319,6 @@ int main(int argc, char **argv) {
 
     char *result = hirchbergs_align(a, b);
     printf("%s\n", result);
+    free(result);
     return 0;
 }
