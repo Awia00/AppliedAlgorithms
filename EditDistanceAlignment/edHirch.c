@@ -2,6 +2,7 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include<string.h>
+#include<immintrin.h>
 
 #define MIN(a,b) ((a) < (b) ? a : b)
 #define M(i, j, N, M) ((i) * (M) + (j))
@@ -209,16 +210,20 @@ void hirchbergs_align_rec(mychar *x, mychar *y, int xlen, int ylen, int startX, 
         current_min=scoreL[0] + scoreR[ylen],
         min_index = 0;
 
-    for(i = 1; i <= ylen; i++)
+    int scores[8];
+    for(i = 1; i <= ylen; i+=8)
     {
-        int score = scoreL[i] + scoreR[ylen-i];
+        _mm256_storeu_si256((__m256i *) scores, _mm256_add_epi32(_mm256_loadu_si256((__m256i *) scoreL + i), _mm256_loadu_si256((__m256i *) scoreR + ylen - i)));
 
-        // Hard > is used to get the topmost 'best' value.
-        if(current_min > score)
-        {
-            current_min = score;
-            min_index = i;
-        } 
+        int j;
+	for (j = 0; j < 8 && i + j <= ylen; j++) {
+            // Hard > is used to get the topmost 'best' value.
+            if(current_min > scores[j])
+            {
+                current_min = scores[j];
+                min_index = i + j;
+            } 
+        }
     }
     free(scoreL);
     free(scoreR);
@@ -268,7 +273,7 @@ char *hirchbergs_align(mychar *x, mychar *y)
                 if (j == last_j) {
                     printf("Goofed 46"); exit(46);
                 } else {
-                    // j changed.
+                    // j changed.1
                     result[index++] = 'b';
                 }
             } else {
