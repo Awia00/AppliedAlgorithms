@@ -158,10 +158,10 @@ void levenshtein_distance(mychar *a, mychar *b, int xlen, int ylen, int startX, 
     }
 }
 
-int *nw_score(mychar *x, mychar *y, int xlen, int ylen){
+int *nw_score_left(mychar *x, mychar *y, int xlen, int ylen){
     int i, j;
-    int *v0 = calloc(ylen + 1, sizeof *v0);
-    int *v1 = calloc(ylen + 1, sizeof *v1);
+    int *v0 = calloc(ylen + 9, sizeof *v0);
+    int *v1 = calloc(ylen + 9, sizeof *v1);
 
     for(j=1;j<=ylen;j++) v0[j] = v0[j-1] + 1;
 
@@ -183,10 +183,35 @@ int *nw_score(mychar *x, mychar *y, int xlen, int ylen){
     return v0;
 }
 
+int *nw_score_right(mychar *x, mychar *y, int xlen, int ylen){
+    int i, j;
+    int *v0 = calloc(ylen + 9, sizeof *v0);
+    int *v1 = calloc(ylen + 9, sizeof *v1);
+
+    for(j=1;j<=ylen;j++) v0[ylen-j] = v0[ylen-(j-1)] + 1;
+
+    for(i=0;i<xlen;i++) {
+        v1[ylen] = v0[ylen] + 1;
+        for(j=0;j<ylen;j++) {
+            int sub = v0[ylen-j] + (x[i] == y[j] ? 0 : 1),
+                del = v0[ylen-(j+1)] + 1,
+                ins = v1[ylen-j] + 1;
+            v1[ylen-(j+1)] = MIN(sub, MIN(del, ins));
+        }
+        int *swap = v1;
+        v1 = v0;
+        v0 = swap;
+    } 
+
+    free(v1);
+
+    return v0;
+}
+
 
 void hirchbergs_align_rec(mychar *x, mychar *y, int xlen, int ylen, int startX, int startY, int *path_points)
 {
-    if (xlen <= 100 || ylen <= 100 ||strcmp(x, y) == 0) {
+    if (xlen <= 2 || ylen <= 2 ||strcmp(x, y) == 0) {
         levenshtein_distance(x, y, xlen, ylen, startX, startY, path_points);
         return;
     }
@@ -199,24 +224,24 @@ void hirchbergs_align_rec(mychar *x, mychar *y, int xlen, int ylen, int startX, 
     int *scoreL; 
     int *scoreR; 
     #pragma omp task shared(scoreL)
-    scoreL = nw_score(left, y, xmid, ylen);
+    scoreL = nw_score_left(left, y, xmid, ylen);
     #pragma omp task shared(scoreR)
-    scoreR = nw_score(rev_right, rev_y, xlen-xmid, ylen);
+    scoreR = nw_score_right(rev_right, rev_y, xlen-xmid, ylen);
     #pragma omp taskwait
     free(rev_right);
     free(rev_y);
 
     int i,
-        current_min=scoreL[0] + scoreR[ylen],
+        current_min=scoreL[0] + scoreR[0],
         min_index = 0;
 
     int scores[8];
     for(i = 1; i <= ylen; i+=8)
     {
-        _mm256_storeu_si256((__m256i *) scores, _mm256_add_epi32(_mm256_loadu_si256((__m256i *) scoreL + i), _mm256_loadu_si256((__m256i *) scoreR + ylen - i)));
+        _mm256_storeu_si256((__m256i *) scores, _mm256_add_epi32(_mm256_loadu_si256((__m256i *) scoreL + i), _mm256_loadu_si256((__m256i *) scoreR + i)));
 
         int j;
-	for (j = 0; j < 8 && i + j <= ylen; j++) {
+	    for (j = 0; j < 8 && i + j <= ylen; j++) {
             // Hard > is used to get the topmost 'best' value.
             if(current_min > scores[j])
             {
