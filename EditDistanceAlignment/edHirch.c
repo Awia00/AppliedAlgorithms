@@ -238,12 +238,26 @@ void hirchbergs_align_rec(mychar *x, mychar *y, int xlen, int ylen, int startX, 
     int scores[8];
     for(i = 1; i <= ylen; i+=8)
     {
-        _mm256_storeu_si256((__m256i *) scores, _mm256_add_epi32(_mm256_loadu_si256((__m256i *) scoreL + i), _mm256_loadu_si256((__m256i *) scoreR + i)));
+        _mm256_storeu_si256((__m256i *) scores, 
+            _mm256_add_epi32(
+                _mm256_loadu_si256((__m256i *) (scoreL + i)), 
+                _mm256_loadu_si256((__m256i *) (scoreR + i))
+            )
+        );
+
+#ifndef CODEJUDGE
+        printf("scoreL: %3d %3d %3d %3d %3d %3d %3d %3d\n", scoreL[i], scoreL[i+1], scoreL[i+2], scoreL[i+3], scoreL[i+4], scoreL[i+5], scoreL[i+6], scoreL[i+7]);
+        printf("scoreR: %3d %3d %3d %3d %3d %3d %3d %3d\n", scoreR[i], scoreR[i+1], scoreR[i+2], scoreR[i+3], scoreR[i+4], scoreR[i+5], scoreR[i+6], scoreR[i+7]);
+        printf("Scores: %3d %3d %3d %3d %3d %3d %3d %3d\n", scores[0], scores[1], scores[2], scores[3], scores[4], scores[5], scores[6], scores[7]);
+#endif
 
         int j;
-	    for (j = 0; j < 8 && i + j <= ylen; j++) {
-            // Hard > is used to get the topmost 'best' value.
-            if(current_min > scores[j])
+        for (j = 0; j < 8 && i + j <= ylen; j++) {
+#ifndef CODEJUDGE
+            printf("current_min: %d - scores[%d]: %d\n", current_min, j, scores[j]);
+#endif
+            // Hard < is used to get the topmost 'best' value.
+            if(scores[j] < current_min)
             {
                 current_min = scores[j];
                 min_index = i + j;
@@ -279,13 +293,6 @@ char *hirchbergs_align(mychar *x, mychar *y)
     #pragma omp parallel
     #pragma omp single nowait
     hirchbergs_align_rec(x, y, xlen, ylen, 0, 0, path_points);
-
-#ifndef CODEJUDGE
-    for(k=0; k <= xlen + ylen; k++) {
-       printf("%3d", path_points[k]);
-    }
-    printf("\n");
-#endif
 
     char *result = calloc(xlen + ylen +1, sizeof *result);
     index = 0;
