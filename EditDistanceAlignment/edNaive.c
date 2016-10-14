@@ -2,6 +2,9 @@
 #include<stdio.h>
 #include<string.h>
 
+#define MIN(a,b) ((a) < (b) ? a : b)
+#define M(i, j, N, M) ((i) * (M) + (j))
+
 typedef int myindex;
 typedef char mychar;
 
@@ -17,7 +20,6 @@ void edFullArray(myindex lena, myindex lenb, long seed) {
   for(i=0;i<lena;i++) a[i] = (lrand48() & 15) + 'a';
   for(j=0;j<lenb;j++) b[j] = (lrand48() & 15) + 'a';
 }
-#define MIN(a,b) ((a) < (b) ? a : b)
 
 char *strrev(char *s, int slen) {
    char *res = calloc((slen + 1), sizeof *res);
@@ -28,19 +30,18 @@ char *strrev(char *s, int slen) {
    return res;
 }
 
-#define M(i, j, alen) (i * alen + j)
-void print_arr(int *m, int alen, int blen, char *a, char *b)
+void print_arr(int *m, int N, int M, char *a, char *b)
 {
   int i, j;
-  for(i = -1; i<=alen; i++)
+  for(i = -1; i<N; i++)
   {
-    for(j = -1; j<=blen; j++)
+    for(j = -1; j<M; j++)
     {
       if(i==-1) // print the first row of letters
       {
         if(j <= 0)
           printf("%3c",' ');
-        else 
+        else
           printf("%3c",b[j-1]);
       }
       else if(j==-1) // print the first column of letters
@@ -51,14 +52,39 @@ void print_arr(int *m, int alen, int blen, char *a, char *b)
           printf("%3c", a[i-1]);
       }
       else{ // print the matrix
-        printf("%3d", m[i * (blen + 1) + j]);
-      } 
+        printf("%3d", m[M(i, j, N, M)]);
+      }
     }
     printf("\n");
   }
 }
 
-#define M(i, j, alen) (i * alen + j)
+void fill_cost_table(int *m, int N, int M, mychar *a, mychar *b)
+{
+  int i,j;
+  for (i = 0; i < N; i++)
+      m[M(i, 0, N, M)] = i;
+
+  for (j = 0; j < M; j++)
+      m[M(0, j, N, M)] = j;
+
+#ifndef CODEJUDGE
+  printf("\nFirst row and column\n");
+  print_arr(m, N, M, a, b);
+#endif
+
+  for (i = 1; i < N; i++)
+  {
+      for (j = 1; j < M; j++)
+      {
+          m[M(i, j, N, M)] = MIN(
+            m[M(i-1, j, N, M)] + 1, MIN(
+            m[M(i, j-1, N, M)] + 1,
+            m[M(i-1, j-1, N, M)] + ((a[i-1] == b[j-1]) ? 0 : 1))
+          );
+      }
+  }
+}
 
 char *LevenshteinDistance(mychar *a, mychar *b)
 {
@@ -67,8 +93,10 @@ char *LevenshteinDistance(mychar *a, mychar *b)
   b = a;
   a = swap;
 
-  int alen = strlen(a); 
-  int blen = strlen(b); 
+  int alen = strlen(a);
+  int blen = strlen(b);
+  const int N = alen + 1;
+  const int M = blen + 1;
 #ifndef CODEJUDGE
   printf("\nalen: %d", alen);
   printf("\nblen: %d", blen);
@@ -90,76 +118,57 @@ char *LevenshteinDistance(mychar *a, mychar *b)
        return out;
   }
 
-  int *m = (int*) calloc ((alen + 1) * (blen + 1), sizeof *m);
+  int *m = (int*) calloc (N * M, sizeof *m);
   //int *m = malloc((alen + 1) * (blen + 1) * sizeof *m);
 
 #ifndef CODEJUDGE
   printf("\nEmpty matrix\n");
-  print_arr(m, alen, blen, a, b);
+  print_arr(m, N, M, a, b);
 #endif
 
-  // fill matrix
-  int i,j;
-  for (i = 0; i <= alen; i++)
-      m[i*(blen+1)] = i;
-
-  for (j = 0; j <= blen; j++)
-      m[j] = j;
-
-#ifndef CODEJUDGE
-  printf("\nFirst row and column\n");
-  print_arr(m, alen, blen, a, b);
-#endif
-  for (i = 1; i <= alen; i++)
-  {
-      for (j = 1; j <= blen; j++)
-      {
-          m[i * (blen + 1) + j] = MIN(m[(i-1) * (blen + 1) + j] + 1, MIN(m[i * (blen + 1) + j-1] + 1, m[(i-1) * (blen + 1) + j-1] + ((a[i-1] == b[j-1]) ? 0 : 1)));
-      }
-  }
-
-  // Printing the matrix.
+  fill_cost_table(m, N, M, a, b);
 
 #ifndef CODEJUDGE
   printf("\nMatrix filled out\n");
-  print_arr(m, alen, blen, a, b);
+  print_arr(m, N, M, a, b);
 #endif
 
   // backtrace
-  i = alen; j = blen;
+  int i = alen, j = blen;
   myindex resultindex = 0;
-  while (i > 0 || j > 0) {
-    if (i==0) {
-       // a is empty, so fill rest of length with 'b'.
-       memset(out + resultindex, 'a', j);
-       resultindex += j;
-       j = 0;
-    } else if (j==0) {
-       // see above.
-       memset(out + resultindex, 'b', i);
-       resultindex += i;
-       i = 0;
+  while (i > 0 && j > 0) {
+    int current = m[M(i, j, N, M)],
+        up      = m[M(i-1, j, N, M)],
+        diag    = m[M(i-1, j-1, N, M)],
+        left    = m[M(i, j-1, N, M)];
+    if (up + 1 == current) {
+      out[resultindex++] = 'b';
+      i--;
+    } else if (diag + 1 == current || (diag == current && a[i-1] == b[j-1])) {
+      out[resultindex++] = '|';
+      i--;
+      j--;
+    } else if (left + 1 == current) {
+      out[resultindex++] = 'a';
+      j--;
     } else {
-      int current = m[i     * (blen + 1) + j], 
-          up      = m[(i-1) * (blen + 1) + j], 
-          diag    = m[(i-1) * (blen + 1) + j-1], 
-          left    = m[i     * (blen + 1) + j-1];
-      if (up + 1 == current) {
-        out[resultindex++] = 'b';
-        i--;
-      } else if (diag + 1 == current || (diag == current && a[i-1] == b[j-1])) {
-        out[resultindex++] = '|';
-        i--;
-        j--;
-      } else if (left + 1 == current) {
-        out[resultindex++] = 'a';
-        j--;
-      } else {
-        printf("You done goofed!\n");
-        exit(45);
-      }
+      printf("You done goofed!\n");
+      exit(45);
     }
   }
+
+  if (j!=0) {
+      // a is empty, so fill rest of length with 'b'.
+      memset(out + resultindex, 'a', j);
+      resultindex += j;
+      j = 0;
+  } else if (i!=0) {
+      // see above.
+      memset(out + resultindex, 'b', i);
+      resultindex += i;
+      i = 0;
+  }
+
   return strrev(out, resultindex);
 }
 

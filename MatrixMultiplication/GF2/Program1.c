@@ -52,6 +52,7 @@ myword signBinMx(int N, int M, myword *A, int seed ) {
   return x;
 };
 
+#define GET(A, row, column, N, Columns) (1L & (A[row*(Columns/64)+column/64]>>(column&63)))
 
 // the definition of how the bits are interpreted as a matrix
 int get(myword *A, int row, int column, int N, int Columns) {
@@ -91,10 +92,10 @@ void transposeNaive(int N, int M,myword *A, myword *B) {
 #define MIN(a,b) ((a) < (b) ? a : b)
 
 void MxMBinNaive(myindex N, myindex M, myindex K, myword *A, myword *B, myword *C) {
-  const int blockSize = 32;
-  A = __builtin_assume_aligned(A, 64);
-  B = __builtin_assume_aligned(B, 64);
-  C = __builtin_assume_aligned(C, 64);
+  const int blockSize = 128;
+  A = __builtin_assume_aligned(A, 32);
+  B = __builtin_assume_aligned(B, 32);
+  C = __builtin_assume_aligned(C, 32);
   int i,i0,j,j0,k;
   myword *B1 = malloc(N*N/8 + 520);
   B1 = (myword *) (((long long unsigned int) B1 | 255 ) +1 );
@@ -113,24 +114,93 @@ void MxMBinNaive(myindex N, myindex M, myindex K, myword *A, myword *B, myword *
     for(j0=0; j0<M; j0+=blockSize) {
       int jlim = MIN(j0 + blockSize, M);
       for(i=i0; i<ilim; i++) {
+        myword *Ai = A+i*klim;
         for(j=j0; j<jlim; j++) {
+        myword *B1j = B1+j*mlim;
 #if AVX
           d = _mm256_setzero_si256();
           for(k=0; k<klim; k+=4) {
-            d = _mm256_xor_si256(d, _mm256_and_si256(_mm256_load_si256((__m256i*) (A + i*(klim)+k)), _mm256_load_si256((__m256i*) (B1 + j*(mlim)+k))));
+            d = _mm256_xor_si256(d, _mm256_and_si256(_mm256_load_si256((__m256i*) (Ai+k)), _mm256_load_si256((__m256i*) (B1j+k))));
           }
           _mm256_storeu_si256((__m256i*) cc, d);
           set(C,__builtin_popcountl(cc[0] ^ cc[1] ^cc[2] ^ cc[3]) & 1,i,j,N,M);
 #else
           myword dp = 0;
           for(k=0; k<klim; k+=4) {
-            dp ^= (A[i*(klim)+k] & B1[j*(mlim)+k]) ^ (A[i*(klim)+k+1] & B1[j*(mlim)+k+1]) ^ (A[i*(klim)+k+2] & B1[j*(mlim)+k+1]) ^ (A[i*(klim)+k+1] & B1[j*(mlim)+k+3]);
+            dp ^= (Ai[k] & B1j[k]) ^ (Ai[k+1] & B1j[k+1]) ^ (Ai[k+2] & B1j[k+2]) ^ (Ai[k+3] & B1j[k+3]);
           }
           set(C,__builtin_popcountl(dp) & 1,i,j,N,M);
 #endif
         }
       }
     }
+  }
+}
+
+void MxMBinReference(myindex N, myindex M, myindex K, myword *A, myword *B, myword *C) {
+  const int Nlim = N/64, Mlim = M/64, Klim = K/64;
+  const int kBlockSize = 128;
+  const int iBlockSize = 128;
+  const int jBlockSize = Mlim;
+  // No transpose
+  // Use one word from A
+  // And a column from B word by word
+  // Then a loop that gets a bit from A-word, if the bit is one, do some XOR, else do nothing (which means multiply by nothing).
+  // Layouts: A[N, K], B[K, M], C[N, M]
+  int i,i0,j,k,k0,j0;
+
+#if AVX
+  B = __builtin_assume_aligned(B, 32);
+  C = __builtin_assume_aligned(C, 32);
+  myword* Ci, Bk;
+#endif
+  #pragma omp parallel for private(i,j,k,i0,j0,k0) shared(A,B,C, N,M,K) default(none)
+
+  for(i0=0;i0<N;i0+=iBlockSize){
+    int iLim = MIN(i0+iBlockSize,N);
+#if AVX
+      for(k0=0;k0<K;k0+=kBlockSize){
+        const int kLim = MIN(k0+kBlockSize,K);
+        for(j0=0;j0<Mlim;j0+=jBlockSize) { 
+          const int jLim = MIN(j0+jBlockSize,Mlim);
+          for (i = i0; i < iLim; i++) {
+            Ci = C + i*Nlim;
+            for (k = k0; k < kLim; k++) {
+              if (GET(A, i, k, N, K)) {
+                Bk = B + k * Klim;
+                for (j = j0; j < jLim; j+=4) {
+                  _mm256_store_si256((__m256i*) (Ci+j),
+                     _mm256_xor_si256(
+                       _mm256_load_si256((__m256i*) (Ci+j)),
+                       _mm256_load_si256((__m256i*) (Bk+j))
+                     )
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+#else
+    for(j0=0;j0<Mlim;j0+=jBlockSize){
+      int jLim = MIN(j0+jBlockSize,Mlim);
+      for(k0=0;k0<N;k0+=kBlockSize){
+        int kLim = MIN(k0+kBlockSize,K);
+        for (i = i0; i < iLim; i++) {
+          myword *Ci = C + i*Nlim;
+          for (k = k0; k < kLim; k++) {
+            if (get(A, i, k, N, K)) {
+              myword *Bk = B + k*Klim;
+              for (j = j0; j < jLim; j++) {
+              // The value is significant because the bit in a is 1
+                Ci[j] ^= Bk[j];
+              }
+            }
+          }
+        }
+      }
+    }
+#endif
   }
 }
 
@@ -146,9 +216,9 @@ int main(int argc, char **argv) {
   myword seedA = atoi(argv[2]);
   myword seedB = atoi(argv[3]);
 
-  myword *A = (myword *) _mm_malloc( N*N/8, 64 );
-  myword *B = (myword *) _mm_malloc( N*N/8, 64 );
-  myword *C = (myword *) _mm_malloc( N*N/8, 64 );
+  myword *A = (myword *) _mm_malloc( N*N/8, 32 );
+  myword *B = (myword *) _mm_malloc( N*N/8, 32 );
+  myword *C = (myword *) _mm_malloc( N*N/8, 32 );
 
   // initialize the matrices in parallel
 #pragma omp parallel sections shared(N,A,B,C,seedA,seedB) default(none)
@@ -166,7 +236,8 @@ int main(int argc, char **argv) {
       memset(C,0,N*N/64* sizeof C);
     }
   }
-  MxMBinNaive(N,N,N,A,B,C);
+//  MxMBinNaive(N,N,N,A,B,C);
+  MxMBinReference(N,N,N,A,B,C);
   myword sig = 1324123147L;
   for(int i=0;i<1;i++) sig = signBinMx(N,N,C,sig);
   printf("%d\n", (int) (sig & ((1<<15) -1)));

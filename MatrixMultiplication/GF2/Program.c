@@ -7,9 +7,15 @@
 // On a Mac with MacPorts and gcc5
 // gcc-mp-5 -fopenmp -O2 -Wall -mavx2 -Wa,-q -mfma -std=c11 binMultAll.c -lm && for i in `seq 1`; do OMP_NUM_THREADS=4 ./a.out $((512*12)) $i $(( 12 + $i)); done
 
+#if NOAVX
+#else
+#define AVX 1
+#endif
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
+#include<malloc.h>
 
 //#include<math.h>
 #include <immintrin.h>
@@ -48,36 +54,98 @@ myword signBinMx(int N, int M, myword *A, int seed ) {
 
 
 // the definition of how the bits are interpreted as a matrix
-int get(myword *A, int i, int m, int N, int M) { return 1L & (A[ i*(M/64) + m/64 ]>> (m & 63));}
-void set(myword *A, int val, int i, int m, int N, int M) {
+int get(myword *A, int row, int column, int N, int Columns) {
+  return 1L & (A[ row*(Columns/64) + column/64 ]>> (column & 63));
+}
+
+void set(myword *A, int val, int row, int column, int N, int Columns) {
   //  printf("%d %d\n",i,m);
-  A[ i*(M/64) + m/64 ] |= (1L << (m & 63));
+  A[ row*(Columns/64) + column/64 ] |= (1L << (column & 63));
   if(!val) {
-    A[ i*(M/64) + m/64 ] ^= (1L << (m & 63));
+    A[ row*(Columns/64) + column/64 ] ^= (1L << (column & 63));
+  }
+}
+
+#define RM(i, m, N, M) (i)*(M)+(m)
+#define CM(i, m, N, M) (m)*(N)+(i)
+#define MIN(a,b) ((a) < (b) ? a : b)
+
+void transposeNaive(int N, int M,myword *A, myword *B) {
+  const int blockSize = 32;
+  int i0, j0, i, j;
+  #pragma omp parallel for shared(A,B,N,M) private(i0, j0, i, j) default(none)
+  for (i0=0; i0<N; i0+=blockSize) {
+    int limI = MIN(i0 + blockSize, N);
+    for (j0=0; j0<M; j0+=blockSize) {
+      int limJ = MIN(j0 + blockSize, M);
+      for (i = i0; i < limI; i++) {
+        for (j = j0; j < limJ; j++) {
+          set(B, get(A, j, i, N, M), i, j, N, M);
+//            B[CM(i, j, N, M)] = A[RM(i, j, N, M)];
+        }
+      }
+    }
   }
 }
 
 #define MIN(a,b) ((a) < (b) ? a : b)
 
-void MxMBinNaive(int N, int M, int K, myword *A, myword *B, myword *C) {
-  const int blockSize = 64;
-  int i0,j0,k0,i,j,k;
-  #pragma omp parallel for private(i,i0,j,j0,k,k0) shared(A, B,C, N,M,K)
-  for(i0=0;i0<N;i0+=blockSize) {
-    int ilim = MIN(i0 + blockSize, N);
-    for(j0=0;j0<M;j0+=blockSize){
+void MxMBinNaive(myindex N, myindex M, myindex K, myword *A, myword *B, myword *C) {
+  const int blockSize = 32;
+  A = __builtin_assume_aligned(A, 32);
+  B = __builtin_assume_aligned(B, 32);
+  C = __builtin_assume_aligned(C, 32);
+  int i,i0,j,j0,k;
+  myword *B1 = malloc(N*N/8 + 520);
+  B1 = (myword *) (((long long unsigned int) B1 | 255 ) +1 );
+  transposeNaive(K, M, B, B1);
+  int klim = K/64;
+  int mlim = M/64;
+#if AVX
+  __uint64_t cc[4];
+  __m256i d;
+  #pragma omp parallel for private(i,i0,j,j0,k, cc, d) shared(A,B,B1,C, N,M,K, mlim, klim) default(none)
+#else
+  #pragma omp parallel for private(i,i0,j,j0,k) shared(A,B,B1,C, N,M,K,mlim,klim) default(none)
+#endif
+  for(i0=0; i0<N; i0+=blockSize) {
+    int ilim = MIN(i0+blockSize, N);
+    for(j0=0; j0<M; j0+=blockSize) {
       int jlim = MIN(j0 + blockSize, M);
-      for(k0=0;k0<K;k0+=blockSize){
-        int klim = MIN(k0 + blockSize, K);
-        for(i=i0; i< ilim; i++) {
-          for(j=j0; j<jlim; j++) {
-            int dp = get(C,i,j,N,M);
-            for(k=k0; k<klim; k++) {
-              if( get(A,i,k,N,K) && get(B,k,j, K,M) ) dp++;
-            }
-            set(C,dp&1,i,j, N,M);    // this is operating in GF2
-            // set(C,dp,i,j, N,M);   // this would be boolean AND OR (on random matrices this is the all ones matrix with very very high prob)
+      for(i=i0; i<ilim; i++) {
+        for(j=j0; j<jlim; j++) {
+#if AVX
+          d = _mm256_setzero_si256();
+          for(k=0; k<klim; k+=4) {
+            d = _mm256_xor_si256(d, _mm256_and_si256(_mm256_load_si256((__m256i*) (A + i*(klim)+k)), _mm256_load_si256((__m256i*) (B1 + j*(mlim)+k))));
           }
+          _mm256_storeu_si256((__m256i*) cc, d);
+          set(C,__builtin_popcountl(cc[0] ^ cc[1] ^cc[2] ^ cc[3]) & 1,i,j,N,M);
+#else
+          myword dp = 0;
+          for(k=0; k<klim; k+=4) {
+            dp ^= (A[i*(klim)+k] & B1[j*(mlim)+k]) ^ (A[i*(klim)+k+1] & B1[j*(mlim)+k+1]) ^ (A[i*(klim)+k+2] & B1[j*(mlim)+k+1]) ^ (A[i*(klim)+k+1] & B1[j*(mlim)+k+3]);
+          }
+          set(C,__builtin_popcountl(dp) & 1,i,j,N,M);
+#endif
+        }
+      }
+    }
+  }
+}
+
+void MxMBinReference(myindex N, myindex M, myindex K, myword *A, myword *B, myword *C) {
+  // No transpose
+  // Use one word from A
+  // And a column from B word by word
+  // Then a loop that gets a bit from A-word, if the bit is one, do some XOR, else do nothing (which means multiply by nothing).
+  // Layouts: A[N, K], B[K, M], C[N, M]
+  for (int i = 0; i < N/64; i++) {
+    for (int j = 0; j < M/64; j++) {
+      for (int k = 0; k < K/64; k++) {
+        if (get(A, i, k, N, K)) {
+	  // The value is significant because the bit in a is 1
+          C[i*(N/64)+j] ^= B[k*(K/64)+j];
         }
       }
     }
@@ -96,16 +164,9 @@ int main(int argc, char **argv) {
   myword seedA = atoi(argv[2]);
   myword seedB = atoi(argv[3]);
 
-  // allocate some extra memory ...
-  myindex size = N*N/8 + 520;
-  myword *A = (myword *) malloc( size );
-  myword *B = (myword *) malloc( size );
-  myword *C = (myword *) malloc( size );
-  // ... to increase the pointer to the next aligned position
-  // we forget the original, because we do not intend to ever free the memory anyway
-  A = (myword *) (((long long unsigned int) A | 255 ) +1 );
-  B = (myword *) (((long long unsigned int) B | 255 ) +1 );
-  C = (myword *) (((long long unsigned int) C | 255 ) +1 );
+  myword *A = (myword *) _mm_malloc( N*N/8, 32 );
+  myword *B = (myword *) _mm_malloc( N*N/8, 32 );
+  myword *C = (myword *) _mm_malloc( N*N/8, 32 );
 
   // initialize the matrices in parallel
 #pragma omp parallel sections shared(N,A,B,C,seedA,seedB) default(none)
@@ -120,18 +181,11 @@ int main(int argc, char **argv) {
     }
 #pragma omp section
     {
-      for(int i=0; i< N*N /128; i++) {
-        C[i] = 0;
-      }
-    }
-#pragma omp section
-    {
-      for(int i=N*N /128; i< N*N /64; i++) {
-        C[i] = 0;
-      }
+      memset(C,0,N*N/64* sizeof C);
     }
   }
   MxMBinNaive(N,N,N,A,B,C);
+//  MxMBinReference(N,N,N,A,B,C);
   myword sig = 1324123147L;
   for(int i=0;i<1;i++) sig = signBinMx(N,N,C,sig);
   printf("%d\n", (int) (sig & ((1<<15) -1)));
