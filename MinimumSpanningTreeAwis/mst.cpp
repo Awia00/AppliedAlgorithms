@@ -49,7 +49,7 @@ class DisjointSet{
             else
             {
                 parent1->parent = parent2;
-                parent1->rank++;    
+                parent2->rank++;
             }
         }
 
@@ -63,13 +63,14 @@ class DisjointSet{
             }
             Node* leader = prev;
             prev = first;
+            // path compression
             while(prev->parent != prev)
             {
                 Node* newParent = prev->parent;
                 prev->parent = leader;
                 prev = newParent;
             }
-            return prev;
+            return leader;
         }
 
         bool sameSet(long v1, long v2)
@@ -94,8 +95,7 @@ long kruskal(Graph* G){
         if(!ds->sameSet(e->v1->id, e->v2->id))
         {
             ds->setUnion(e->v1->id, e->v2->id);
-            mst[j] = e;
-            j++;
+            mst[j++] = e;
         }
     }
     return G->mstToInt(mst, j);
