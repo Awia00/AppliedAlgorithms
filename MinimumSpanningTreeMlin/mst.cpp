@@ -1,5 +1,6 @@
 
 #include<iostream>
+#include<algorithm>
 
 #include "graph.h"
 
@@ -25,36 +26,78 @@ class DisjointSet{
         };
 
         void setUnion(long v1, long v2){
-            return;
+            Node *n1 = find(v1);
+            Node *n2 = find(v2);
+
+            if (n1->rank < n2->rank) {
+                // n2 has largest rank:
+                n1->parent = n2;
+            } else if (n2->rank < n1->rank) {
+                // n1 has largest rank:
+                n2->parent = n1;
+            } else {
+                n1->parent = n2;
+                n2->rank++;
+            }
         }
 
         Node* find(long id) {
             //return the address of the highest node in the tree
-           
-            //this is just so code compiles; should be changed
-            return NULL;
+            Node *n = nodes[id];
+
+            while (n->parent != n) {
+                n = n->parent;
+            }
+
+            return n;
         }
 
-        DisjointSet(Vertex** v, long numVertices){
-            //constructor (if needed)
+        DisjointSet(long numVertices){
+            nodes = new Node*[numVertices];
+
+            for(int i = 0; i < numVertices; i++) {
+                nodes[i] = new Node();
+            }
         }
 
         bool sameSet(long v1, long v2)
         {
             //return true if v1 and v2 are in the same set 
             //(i.e. have same highest node) false otherwise
-            
-            //this is just so code compiles; should be changed
-            return false;
+            return find(v1) == find(v2);
         }
+
+    private:
+        Node **nodes;
 };
+
+bool edgeSort(Edge *i, Edge *j) {return i->weight < j->weight;}
 
 long kruskal(Graph* G){
     Edge** mst = new Edge*[G->numVertices]; 
 
     //set up edge list
     Edge** edgeList = new Edge*[G->numEdges];
-    return 0;
+
+    for(int i = 0; i < G->numEdges; i++) {
+        edgeList[i] = G->edgeList[i];
+    }
+
+    std::sort(edgeList, edgeList+G->numEdges, edgeSort);
+
+    DisjointSet *set = new DisjointSet(G->numVertices);
+
+    int edgeNumber = 0;
+    for(int i = 0; i < G->numEdges; i++) {
+        Edge *e = edgeList[i];
+
+        if (!set->sameSet(e->v1->id, e->v2->id)) {
+            mst[edgeNumber++] = e;
+            set->setUnion(e->v1->id, e->v2->id);
+        }
+    }
+
+    return G->mstToInt(mst, edgeNumber);
 }
 
 
