@@ -1,5 +1,6 @@
 
 #include<iostream>
+#include <algorithm>
 
 #include "graph.h"
 
@@ -24,37 +25,80 @@ class DisjointSet{
                 }
         };
 
+        Node** nodes;
+        DisjointSet(Vertex** v, long numVertices) {
+            nodes = new Node*[numVertices];
+            for(long i = 0; i<numVertices; i++)
+            {
+                long id = v[i]->id;
+                nodes[id] = new Node();
+            }
+        }
+
         void setUnion(long v1, long v2){
-            return;
+            Node* parent1 = find(v1);
+            Node* parent2 = find(v2);
+            if(parent1->rank > parent2->rank)
+            {
+                parent1->parent = parent2;
+            }
+            else if(parent1->rank < parent2->rank)
+            {
+                parent2->parent = parent1;
+            }
+            else
+            {
+                parent1->parent = parent2;
+                parent1->rank++;    
+            }
         }
 
         Node* find(long id) {
-            //return the address of the highest node in the tree
-           
-            //this is just so code compiles; should be changed
-            return NULL;
-        }
-
-        DisjointSet(Vertex** v, long numVertices){
-            //constructor (if needed)
+            //return NULL;
+            Node* first = nodes[id];
+            Node* prev = first;
+            while(prev->parent != prev)
+            {
+                prev = prev->parent;
+            }
+            Node* leader = prev;
+            prev = first;
+            while(prev->parent != prev)
+            {
+                Node* newParent = prev->parent;
+                prev->parent = leader;
+                prev = newParent;
+            }
+            return prev;
         }
 
         bool sameSet(long v1, long v2)
         {
-            //return true if v1 and v2 are in the same set 
-            //(i.e. have same highest node) false otherwise
-            
-            //this is just so code compiles; should be changed
-            return false;
+            return find(v1) == find(v2);
         }
 };
 
 long kruskal(Graph* G){
     Edge** mst = new Edge*[G->numVertices]; 
 
-    //set up edge list
-    Edge** edgeList = new Edge*[G->numEdges];
-    return 0;
+    Edge** edgeList = G->edgeList;
+    
+    std::sort(edgeList, edgeList + G->numEdges, Edge::compare);
+
+    DisjointSet* ds = new DisjointSet(G->vertexList, G->numVertices);
+
+    long j = 0;
+    for(long i = 0; i<G->numEdges; i++)
+    {
+        Edge* e = edgeList[i];
+        if(!ds->sameSet(e->v1->id, e->v2->id))
+        {
+            ds->setUnion(e->v1->id, e->v2->id);
+            mst[j] = e;
+            j++;
+        }
+    }
+    return G->mstToInt(mst, j);
 }
 
 
