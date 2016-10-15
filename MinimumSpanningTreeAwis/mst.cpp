@@ -1,14 +1,49 @@
 
 #include<iostream>
-#include <algorithm>
+#include<algorithm>
+#include<queue>
+#include<vector>
 
 #include "graph.h"
 
+class PrimVertex{
+    public:
+        Vertex* v;
+        long cost;
+        PrimVertex(Vertex* vertex)
+        {
+            v = vertex;
+            cost = 10000;
+        }
+        static bool compare(PrimVertex* a, PrimVertex* b)
+        {
+            return a->cost < b->cost;
+        }
+};
 
 long prim(Graph* G){
     Edge** mst = new Edge*[G->numVertices];
     long mstsize = 0;
+    std::priority_queue<PrimVertex*, std::vector<PrimVertex*>, std::function<bool(PrimVertex*, PrimVertex*)>> pq(PrimVertex::compare);
+    
+    long* costs = new long[G->numVertices];
 
+    Edge** edges = G->edgeList;
+    Vertex** vertices = G->vertexList;
+
+
+    for(long i = 0; i < G->numVertices; i++)
+    {
+        pq.push(new PrimVertex(vertices[i]));
+    }
+
+    Vertex** forest = new Vertex*[G->numVertices];
+    long j = 0;
+    while(!pq.empty())
+    {
+        mst[j++] = pq.top();
+        mst[0] = edges[0];
+    }
     return G->mstToInt(mst,mstsize); 
 }
 
@@ -54,7 +89,6 @@ class DisjointSet{
         }
 
         Node* find(long id) {
-            //return NULL;
             Node* first = nodes[id];
             Node* prev = first;
             while(prev->parent != prev)
