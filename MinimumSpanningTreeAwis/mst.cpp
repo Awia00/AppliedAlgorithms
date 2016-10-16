@@ -52,15 +52,15 @@ long prim(Graph* G){
                 if (cheapestRoute[edge->v1->id] == NULL || cheapestRoute[edge->v1->id]->weight > edge->weight)
                 {
                     cheapestRoute[edge->v1->id] = edge;
+                    PrimVertex* pv = new PrimVertex(edge->v1, edge->weight);
+                    pq.push(pv);
                 }
                 if (cheapestRoute[edge->v2->id] == NULL || cheapestRoute[edge->v2->id]->weight > edge->weight)
                 {
                     cheapestRoute[edge->v2->id] = edge;
+                    PrimVertex* pv = new PrimVertex(edge->v2, edge->weight);
+                    pq.push(pv);
                 }
-                PrimVertex* pv1 = new PrimVertex(edge->v2, edge->weight);
-                PrimVertex* pv2 = new PrimVertex(edge->v1, edge->weight);
-                pq.push(pv1);
-                pq.push(pv2);
             }
 
             if(notFirstRound)
