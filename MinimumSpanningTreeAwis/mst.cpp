@@ -66,8 +66,9 @@ long prim(Graph* G){
             if(notFirstRound)
             {
                 mst[j++] = cheapestRoute[id];
-                notFirstRound = true;
             }
+            else
+                notFirstRound = true;
             
         }
     }
