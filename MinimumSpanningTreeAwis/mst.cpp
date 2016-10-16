@@ -15,6 +15,11 @@ class PrimVertex{
             v = vertex;
             cost = 10000;
         }
+        PrimVertex(Vertex* vertex, long aCost)
+        {
+            v = vertex;
+            cost = aCost;
+        }
         static bool compare(PrimVertex* a, PrimVertex* b)
         {
             return a->cost < b->cost;
@@ -23,28 +28,50 @@ class PrimVertex{
 
 long prim(Graph* G){
     Edge** mst = new Edge*[G->numVertices];
-    long mstsize = 0;
     std::priority_queue<PrimVertex*, std::vector<PrimVertex*>, std::function<bool(PrimVertex*, PrimVertex*)>> pq(PrimVertex::compare);
     
-    long* costs = new long[G->numVertices];
+    bool* hasBeenTaken = new bool[G->numVertices];
+    Edge** cheapestRoute = new Edge*[G->numVertices];
 
-    Edge** edges = G->edgeList;
-    Vertex** vertices = G->vertexList;
-
-
-    for(long i = 0; i < G->numVertices; i++)
-    {
-        pq.push(new PrimVertex(vertices[i]));
-    }
-
-    Vertex** forest = new Vertex*[G->numVertices];
     long j = 0;
+    pq.push(new PrimVertex(G->vertexList[j]));
+    bool notFirstRound = false;
     while(!pq.empty())
     {
-        mst[j++] = pq.top();
-        mst[0] = edges[0];
+        PrimVertex* p = pq.top();
+        pq.pop();
+        long id = p->v->id;
+        
+        if(!hasBeenTaken[id]) 
+        {
+            hasBeenTaken[id] = true;
+            Edge** edges = p->v->vertexEdgeList;
+            for(long i = 0; i < p->v->totalNumEdges; i++)
+            {
+                Edge* edge = edges[i];
+                if (cheapestRoute[edge->v1->id] == NULL || cheapestRoute[edge->v1->id]->weight > edge->weight)
+                {
+                    cheapestRoute[edge->v1->id] = edge;
+                }
+                if (cheapestRoute[edge->v2->id] == NULL || cheapestRoute[edge->v2->id]->weight > edge->weight)
+                {
+                    cheapestRoute[edge->v2->id] = edge;
+                }
+                PrimVertex* pv1 = new PrimVertex(edge->v2, edge->weight);
+                PrimVertex* pv2 = new PrimVertex(edge->v1, edge->weight);
+                pq.push(pv1);
+                pq.push(pv2);
+            }
+
+            if(notFirstRound)
+            {
+                mst[j++] = cheapestRoute[id];
+                notFirstRound = true;
+            }
+            
+        }
     }
-    return G->mstToInt(mst,mstsize); 
+    return G->mstToInt(mst, j); 
 }
 
 class DisjointSet{
@@ -180,5 +207,5 @@ int main(int argc, char* argv[]){
     }
 
     std::cout <<  kruskal(G) << std::endl;
-    //std::cout <<  prim(G) << std::endl;
+    std::cout <<  prim(G) << std::endl;
 }
