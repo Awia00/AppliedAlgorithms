@@ -33,6 +33,15 @@ class Edge{
         void output(){
             std::cout << "(" << v1->id << "," << v2-> id << ") w: " << weight << " ";
         }
+        static bool compare(Edge* e1, Edge* e2)
+        {
+            return e1->weight < e2->weight;
+        }
+        static bool compare2(Edge* e1, Edge* e2)
+        {
+            return e1->weight > e2->weight;
+        }
+
 };
 
 class Random{
