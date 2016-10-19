@@ -6,6 +6,7 @@
 
 #include "graph.h"
 
+#ifndef CODEJUDGE
 class PrimVertex{
     public:
         Vertex* v;
@@ -70,6 +71,7 @@ long prim(Graph* G){
     }
     return G->mstToInt(mst, j); 
 }
+#endif
 
 class DisjointSet{
     public:
@@ -204,5 +206,5 @@ int main(int argc, char* argv[]){
     }
 
     std::cout <<  kruskal(G) << std::endl;
-    std::cout <<  prim(G) << std::endl;
+    //std::cout <<  prim(G) << std::endl;
 }
