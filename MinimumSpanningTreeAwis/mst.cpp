@@ -3,10 +3,12 @@
 #include<algorithm>
 #include<queue>
 #include<vector>
+#include<set>
+#include<functional>
 
 #include "graph.h"
 
-#ifndef CODEJUDGE
+//#ifndef CODEJUDGE
 class PrimVertex{
     public:
         Vertex* v;
@@ -55,23 +57,30 @@ long prim(Graph* G){
         {
             for(int i = 0; i < e->v1->currentNumEdges; i++)
             {
-                pq.push(e->v1->vertexEdgeList[i]);
+                Edge* newEdge = e->v1->vertexEdgeList[i];
+
+                if(!(hasBeenTaken[newEdge->v1->id] && hasBeenTaken[newEdge->v2->id]))
+                    pq.push(newEdge);
             }
+            hasBeenTaken[e->v1->id] = true;
         }
         if(!hasBeenTaken[e->v2->id])
         {
             for(int i = 0; i < e->v2->currentNumEdges; i++)
             {
-                pq.push(e->v2->vertexEdgeList[i]);
+                Edge* newEdge = e->v2->vertexEdgeList[i];
+                if(!(hasBeenTaken[newEdge->v1->id] && hasBeenTaken[newEdge->v2->id]))
+                    pq.push(newEdge);
             }    
+            hasBeenTaken[e->v2->id] = true;
         }
-        hasBeenTaken[e->v1->id] = true;
-        hasBeenTaken[e->v2->id] = true;
+        
+        
 
     }
     return G->mstToInt(mst, j); 
 }
-#endif
+//#endif
 
 class DisjointSet{
     public:
