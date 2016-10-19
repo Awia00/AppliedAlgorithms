@@ -1,109 +1,40 @@
 
 #include<iostream>
 #include<algorithm>
-#include<queue>
-#include<set>
-#include<functional>
+
 #include "graph.h"
 
 using namespace std;
 bool edgeSort(Edge *i, Edge *j) {return i->weight < j->weight;}
-bool edgeRevSort(Edge *i, Edge *j) {return i->weight > j->weight;}
-
-long prim(Graph* G){
-    Edge** mst = new Edge*[G->numVertices];
-    long mstsize = 0;
-
-    priority_queue<Edge*, vector<Edge*>, function<bool(Edge*, Edge*)>> fringe(edgeRevSort);
-
-    bool *nodeSet = new bool[G->numVertices];
-
-    Vertex* v = G->vertexList[0];
-
-    nodeSet[v->id] = true;
-    
-    for(int i = 0; i < v->currentNumEdges; i++) {
-        fringe.push(v->vertexEdgeList[i]);
-    }
-
-    while(mstsize < G->numVertices - 1) {
-        Edge *e = fringe.top(); fringe.pop();
-        
-        if (nodeSet[e->v1->id] && nodeSet[e->v2->id]) continue;
-
-        mst[mstsize++] = e;
-
-        if (!nodeSet[e->v1->id]) {
-            v = e->v1;
-            nodeSet[v->id] = true;
-            for(int j = 0; j < v->currentNumEdges; j++) {
-                Edge *newEdge = v->vertexEdgeList[j];
-                if (!(nodeSet[newEdge->v1->id] && nodeSet[newEdge->v2->id])) {
-                    fringe.push(newEdge);
-                }
-            }
-
-        } 
-        if (!nodeSet[e->v2->id]) {
-            v = e->v2;
-            nodeSet[v->id] = true;
-            for(int j = 0; j < v->currentNumEdges; j++) {
-                Edge *newEdge = v->vertexEdgeList[j];
-                if (!(nodeSet[newEdge->v1->id] && nodeSet[newEdge->v2->id])) {
-                    fringe.push(newEdge);
-                }
-            }
-        }
-    }
-
-    return G->mstToInt(mst,mstsize); 
-}
 
 class DisjointSet{
     public:
-        class Node{
-            //Node is potentially a helpful class.  Can be changed or deleted without harm
-            public:
-                Node* parent;
-                int rank;
-                Node(){
-                    rank = 0;
-                    parent = this;
-                }
-        };
-
         void setUnion(long v1, long v2){
-            Node *n1 = find(v1);
-            Node *n2 = find(v2);
+            long n1 = find(v1);
+            long n2 = find(v2);
 
-            if (n1->rank < n2->rank) {
+            if (n1 == n2) return;
+
+            int rank1 = ranks[n1], rank2 = ranks[n2];
+
+            if (rank1 < rank2) {
                 // n2 has largest rank:
-                n1->parent = n2;
-            } else if (n2->rank < n1->rank) {
+                ids[n1] = n2;
+            } else if (rank2 < rank1) {
                 // n1 has largest rank:
-                n2->parent = n1;
+                ids[n2] = n1;
             } else {
-                n1->parent = n2;
-                n2->rank++;
+                ids[n1] = n2;
+                ranks[n2]++;
             }
-        }
-
-        Node* find(long id) {
-            //return the address of the highest node in the tree
-            Node *n = nodes[id];
-
-            while (n->parent != n) {
-                n = n->parent;
-            }
-
-            return n;
         }
 
         DisjointSet(long numVertices){
-            nodes = new Node*[numVertices];
+            ids = new long[numVertices];
+            ranks = new int[numVertices];
 
-            for(int i = 0; i < numVertices; i++) {
-                nodes[i] = new Node();
+            for(long i = 0; i < numVertices; i++) {
+                ids[i]=i;
             }
         }
 
@@ -115,37 +46,41 @@ class DisjointSet{
         }
 
     private:
-        Node **nodes;
+        long *ids;
+        int *ranks;
+
+        long find(long id) {
+            if (id == ids[id]) return id;
+            ids[id] = find(ids[id]);
+            return ids[id];
+        }
 };
 
-long kruskal(Graph* G){
-    Edge** mst = new Edge*[G->numVertices]; 
+long kruskal(Graph* G, long numVertices){
+    unsigned int hash = 0;
+    Random randGenerator(0); 
 
-    //set up edge list
-    Edge** edgeList = new Edge*[G->numEdges];
+    Edge** edgeList = G->edgeList;
+    long numEdges = G->numEdges;
 
-    for(int i = 0; i < G->numEdges; i++) {
-        edgeList[i] = G->edgeList[i];
-    }
-
-    sort(edgeList, edgeList+G->numEdges, edgeSort);
-
-    DisjointSet *set = new DisjointSet(G->numVertices);
+    sort(edgeList, edgeList+numEdges, edgeSort);
+    
+    DisjointSet *set = new DisjointSet(numVertices);
 
     int edgeNumber = 0;
-    for(int i = 0; i < G->numEdges; i++) {
-        Edge *e = edgeList[i];
+    Edge *e; Vertex *v1, *v2;
+    for(int i = 0; i < numEdges && edgeNumber < numVertices-1; i++) {
+        e = edgeList[i];
+        v1 = e->v1, v2 = e->v2;
 
-        if (!set->sameSet(e->v1->id, e->v2->id)) {
-            mst[edgeNumber++] = e;
-            set->setUnion(e->v1->id, e->v2->id);
+        if (!set->sameSet(v1->id, v2->id)) {
+            hash += randGenerator.hashRand(e->weight);
+            set->setUnion(v1->id, v2->id);
         }
     }
 
-    return G->mstToInt(mst, edgeNumber);
+    return hash;
 }
-
-
 
 int main(int argc, char* argv[]){
     long numVertices, numEdges;
@@ -189,6 +124,6 @@ int main(int argc, char* argv[]){
         return 0;
     }
 
-    cout <<  kruskal(G) << endl;
-    cout <<  prim(G) << endl;
+    cout <<  kruskal(G, numVertices) << endl;
 }
+
