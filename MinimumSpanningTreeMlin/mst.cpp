@@ -1,151 +1,183 @@
 
 #include<iostream>
 #include<algorithm>
-#include<queue>
-#include<set>
-#include<functional>
+
 #include "graph.h"
 
 using namespace std;
 bool edgeSort(Edge *i, Edge *j) {return i->weight < j->weight;}
-bool edgeRevSort(Edge *i, Edge *j) {return i->weight > j->weight;}
-
-long prim(Graph* G){
-    Edge** mst = new Edge*[G->numVertices];
-    long mstsize = 0;
-
-    priority_queue<Edge*, vector<Edge*>, function<bool(Edge*, Edge*)>> fringe(edgeRevSort);
-
-    bool *nodeSet = new bool[G->numVertices];
-
-    Vertex* v = G->vertexList[0];
-
-    nodeSet[v->id] = true;
-    
-    for(int i = 0; i < v->currentNumEdges; i++) {
-        fringe.push(v->vertexEdgeList[i]);
-    }
-
-    while(mstsize < G->numVertices - 1) {
-        Edge *e = fringe.top(); fringe.pop();
-        
-        if (nodeSet[e->v1->id] && nodeSet[e->v2->id]) continue;
-
-        mst[mstsize++] = e;
-
-        if (!nodeSet[e->v1->id]) {
-            v = e->v1;
-            nodeSet[v->id] = true;
-            for(int j = 0; j < v->currentNumEdges; j++) {
-                Edge *newEdge = v->vertexEdgeList[j];
-                if (!(nodeSet[newEdge->v1->id] && nodeSet[newEdge->v2->id])) {
-                    fringe.push(newEdge);
-                }
-            }
-
-        } 
-        if (!nodeSet[e->v2->id]) {
-            v = e->v2;
-            nodeSet[v->id] = true;
-            for(int j = 0; j < v->currentNumEdges; j++) {
-                Edge *newEdge = v->vertexEdgeList[j];
-                if (!(nodeSet[newEdge->v1->id] && nodeSet[newEdge->v2->id])) {
-                    fringe.push(newEdge);
-                }
-            }
-        }
-    }
-
-    return G->mstToInt(mst,mstsize); 
-}
 
 class DisjointSet{
     public:
-        class Node{
-            //Node is potentially a helpful class.  Can be changed or deleted without harm
-            public:
-                Node* parent;
-                int rank;
-                Node(){
-                    rank = 0;
-                    parent = this;
-                }
-        };
-
         void setUnion(long v1, long v2){
-            Node *n1 = find(v1);
-            Node *n2 = find(v2);
+            long n1 = find(v1);
+            long n2 = find(v2);
 
-            if (n1->rank < n2->rank) {
+            if (n1 == n2) return;
+
+            if (nodes[n1].rank < nodes[n2].rank) {
                 // n2 has largest rank:
-                n1->parent = n2;
-            } else if (n2->rank < n1->rank) {
+                nodes[n1].parent = n2;
+            } else if (nodes[n2].rank < nodes[n1].rank) {
                 // n1 has largest rank:
-                n2->parent = n1;
+                nodes[n2].parent = n1;
             } else {
-                n1->parent = n2;
-                n2->rank++;
+                nodes[n1].parent = n2;
+                nodes[n2].rank++;
             }
-        }
-
-        Node* find(long id) {
-            //return the address of the highest node in the tree
-            Node *n = nodes[id];
-
-            while (n->parent != n) {
-                n = n->parent;
-            }
-
-            return n;
         }
 
         DisjointSet(long numVertices){
-            nodes = new Node*[numVertices];
+            nodes = new UF[numVertices];
 
-            for(int i = 0; i < numVertices; i++) {
-                nodes[i] = new Node();
+            for(long i = 0; i < numVertices; i++) {
+                nodes[i].parent=i;
             }
         }
 
         bool sameSet(long v1, long v2)
         {
+            long n1, n2;
+
+            n1 = find(v1);
+            n2 = find(v2);
+
             //return true if v1 and v2 are in the same set 
             //(i.e. have same highest node) false otherwise
-            return find(v1) == find(v2);
+            return n1 == n2;
+        }
+
+        long find(long id) {
+            if (id == nodes[id].parent) return id;
+            nodes[id].parent = find(nodes[id].parent);
+            return nodes[id].parent;
         }
 
     private:
-        Node **nodes;
+        struct UF 
+        {
+            long parent;
+            int rank;
+        };
+        UF *nodes;
 };
 
-long kruskal(Graph* G){
-    Edge** mst = new Edge*[G->numVertices]; 
-
-    //set up edge list
-    Edge** edgeList = new Edge*[G->numEdges];
-
-    for(int i = 0; i < G->numEdges; i++) {
-        edgeList[i] = G->edgeList[i];
+long boruvkaMST(const Graph *graph, const long numVertices)
+{
+    // Get data of given graph
+    const long numEdges = graph->numEdges;
+    Edge **edgeList = graph->edgeList;
+ 
+    DisjointSet *set = new DisjointSet(numVertices);
+ 
+    // An array to store index of the cheapest edge of
+    // subset.  The stored index for indexing array 'edge[]'
+    int *cheapest = new int[numVertices];
+ 
+    // Create V subsets with single elements
+    //#pragma omp parallel for shared(cheapest) default(none)
+    for (long v = 0; v < numVertices; ++v)
+    {
+        cheapest[v] = -1;
     }
+ 
+    // Initially there are V different trees.
+    // Finally there will be one tree that will be MST
+    long numTrees = numVertices;
+    unsigned int hash = 0;
+    Random randGenerator(0);
 
-    sort(edgeList, edgeList+G->numEdges, edgeSort);
+    // Keep combining components (or sets) until all
+    // compnentes are not combined into single MST.
+    while (numTrees > 1)
+    {
+        // Traverse through all edges and update
+        // cheapest of every component
+        //#pragma omp parallel for shared(set, edgeList, cheapest) default(none)
+        for (long i=0; i<numEdges; i++)
+        {
+            Edge *e = edgeList[i];
+            // Find components (or sets) of two corners
+            // of current edge
+            long set1 = set->find(e->v1->id);
+            long set2 = set->find(e->v2->id);
+ 
+            // If two corners of current edge belong to
+            // same set, ignore current edge
+            if (set1 == set2)
+                continue;
+ 
+            // Else check if current edge is closer to previous
+            // cheapest edges of set1 and set2
+            if (cheapest[set1] == -1 || edgeList[cheapest[set1]]->weight > e->weight)
+                cheapest[set1] = i;
+ 
+            if (cheapest[set2] == -1 || edgeList[cheapest[set2]]->weight > e->weight)
+                cheapest[set2] = i;
+        }
+ 
+        // Consider the above picked cheapest edges and add them
+        // to MST
+        for (int i=0; i<numVertices; i++)
+        {
+            // Check if cheapest for current set exists
+            if (cheapest[i] != -1)
+            {
+                Edge *cheap = edgeList[cheapest[i]];
+                long set1 = set->find(cheap->v1->id);
+                long set2 = set->find(cheap->v2->id);
+ 
+                if (set1 == set2)
+                    continue;
 
-    DisjointSet *set = new DisjointSet(G->numVertices);
+                hash += randGenerator.hashRand(cheap->weight); 
+#ifndef CODEJUDGE
+                printf("%ld -> %ld\n", cheap->v1->id, cheap->v2->id);
+#endif
+                // Do a union of set1 and set2 and decrease number
+                // of trees
+                set->sameSet(set1, set2);
+                numTrees--;
+            }
+        }
+    }
+ 
+    return hash;
+}
 
+long kruskal(const Graph* G, const long numVertices){
+    Edge** edgeList = G->edgeList;
+    const long numEdges = G->numEdges;
+    DisjointSet *set;
+    
+    #pragma omp task shared(edgeList) default(none)
+    sort(edgeList, edgeList+numEdges, edgeSort);
+
+    #pragma omp task shared(set) default(none)
+    set = new DisjointSet(numVertices);
+
+    unsigned int hash = 0;
+    Random randGenerator(0);
     int edgeNumber = 0;
-    for(int i = 0; i < G->numEdges; i++) {
-        Edge *e = edgeList[i];
+    Edge *e; Vertex *v1, *v2; 
+    #pragma omp taskwait
 
-        if (!set->sameSet(e->v1->id, e->v2->id)) {
-            mst[edgeNumber++] = e;
-            set->setUnion(e->v1->id, e->v2->id);
+    for(int i = 0; i < numEdges && edgeNumber < numVertices-1; i++) {
+        e = edgeList[i];
+        v1 = e->v1, v2 = e->v2;
+
+        if (!set->sameSet(v1->id, v2->id)) {
+#ifndef CODEJUDGE
+            printf("%ld -> %ld\n", v1->id, v2->id);
+#endif
+
+            hash += randGenerator.hashRand(e->weight);
+            set->setUnion(v1->id, v2->id);
         }
     }
 
-    return G->mstToInt(mst, edgeNumber);
+    return hash;
 }
-
-
 
 int main(int argc, char* argv[]){
     long numVertices, numEdges;
@@ -189,6 +221,12 @@ int main(int argc, char* argv[]){
         return 0;
     }
 
-    cout <<  kruskal(G) << endl;
-    cout <<  prim(G) << endl;
+    cout <<  boruvkaMST(G, numVertices) << endl;
+
+#ifndef CODEJUDGE
+    #pragma omp parallel
+    #pragma omp single nowait
+    cout <<  kruskal(G, numVertices) << endl;
+#endif
 }
+
