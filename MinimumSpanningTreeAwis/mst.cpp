@@ -62,6 +62,39 @@ long prim(Graph* G){
     return G->mstToInt(mst, j); 
 }
 //#endif
+
+
+
+
+// The main function that sort the given string arr[] in
+// alphabatical order
+Edge** countSort(Edge** arr, int size)
+{
+    Edge** output;
+    output = new Edge*[size];
+ 
+    int* count = new int[10000];
+    int i;
+ 
+    for(i = 0; i < size; ++i)
+    {
+        ++count[arr[i]->weight];
+    }
+        
+    for (i = 1; i <= 10000; ++i)
+    {
+        count[i] += count[i-1];
+    }
+        
+    for (i = 0; i<size; ++i)
+    {
+        output[count[arr[i]->weight]-1] = arr[i];
+        count[arr[i]->weight]--;
+    }
+ 
+    return output;
+}
+
 class DisjointSetArray{
     public:
         int* parents;
@@ -188,7 +221,7 @@ class DisjointSet{
             Vertex* prev = first;
             while(prev->parent != prev)
             {
-                prev = prev->parent->parent;
+                prev = prev->parent->parent; // small loop unrolling.
             }
             
             if(first->parent == prev)
@@ -214,19 +247,22 @@ class DisjointSet{
 };
 bool edgeSort(Edge *i, Edge *j) {return i->weight < j->weight;}
 long kruskal(Graph* G){
-    Edge** mst = new Edge*[G->numVertices]; 
+    //Edge** mst = new Edge*[G->numVertices]; 
 
     Edge** edgeList = G->edgeList;
     
-    sort(edgeList, edgeList + G->numEdges, edgeSort);
+    //sort(edgeList, edgeList + G->numEdges, edgeSort);
+    edgeList = countSort(edgeList, G->numEdges);
 
     DisjointSet* ds = new DisjointSet(G->vertexList, G->numVertices);
 
-    long j = 0;
-    Edge* e;
 
+    Edge* e;
     Vertex* n1;
     Vertex* n2;
+    Random randGenerator(0);
+    unsigned int hash = 0;
+
     for(int i = 0; i<G->numEdges; i++)
     {
         e = edgeList[i];
@@ -235,11 +271,12 @@ long kruskal(Graph* G){
         if(!(n1 == n2))
         {
             ds->setUnion(n1, n2);
-            mst[j++] = e;
+            //mst[j++] = e;
+            hash += randGenerator.hashRand(e->weight);
         }
     }
 
-    return G->mstToInt(mst, j);
+    return hash;
 }
 
 long kruskalArray(Graph* G){
@@ -328,3 +365,7 @@ int main(int argc, char* argv[]){
     //cout <<  kruskalArray(G) << endl;
     //cout <<  prim(G) << endl;
 }
+
+
+
+
