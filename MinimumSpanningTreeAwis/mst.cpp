@@ -10,26 +10,6 @@
 
 using namespace std;
 //#ifndef CODEJUDGE
-class PrimVertex{
-    public:
-        Vertex* v;
-        int cost;
-        PrimVertex(Vertex* vertex)
-        {
-            v = vertex;
-            cost = 10000;
-        }
-        PrimVertex(Vertex* vertex, int aCost)
-        {
-            v = vertex;
-            cost = aCost;
-        }
-        static bool compare(PrimVertex* a, PrimVertex* b)
-        {
-            return a->cost < b->cost;
-        }
-};
-
 long prim(Graph* G){
     Edge** mst = new Edge*[G->numVertices];
     priority_queue<Edge*, vector<Edge*>, function<bool(Edge*, Edge*)>> pq(Edge::compare2);
@@ -82,17 +62,6 @@ long prim(Graph* G){
     return G->mstToInt(mst, j); 
 }
 //#endif
-
-class Node{
-    //Node is potentially a helpful class.  Can be changed or deleted without harm
-    public:
-        Node* parent;
-        int rank;
-        Node(){
-            parent = this;
-        }
-};
-
 class DisjointSetArray{
     public:
         int* parents;
@@ -176,18 +145,14 @@ class DisjointSetArray{
 
 class DisjointSet{
     public:
-        Node** nodes;
+        Vertex** nodes;
         DisjointSet(Vertex** v, long numVertices) {
-            nodes = new Node*[numVertices];
-            for(int i = 0; i<numVertices; i++)
-            {
-                nodes[v[i]->id] = new Node();
-            }
+            nodes = v;
         }
 
         void setUnion(long v1, long v2){
-            Node* parent1 = find(v1);
-            Node* parent2 = find(v2);
+            Vertex* parent1 = find(v1);
+            Vertex* parent2 = find(v2);
             if(parent1->rank > parent2->rank)
             {
                 parent2->parent = parent1;
@@ -202,7 +167,7 @@ class DisjointSet{
                 parent2->rank++;
             }
         }
-        void setUnion(Node* parent1, Node* parent2){
+        void setUnion(Vertex* parent1, Vertex* parent2){
             if(parent1->rank > parent2->rank)
             {
                 parent2->parent = parent1;
@@ -218,21 +183,21 @@ class DisjointSet{
             }
         }
 
-        Node* find(long id) {
-            Node* first = nodes[id];
-            Node* prev = first;
+        Vertex* find(long id) {
+            Vertex* first = nodes[id];
+            Vertex* prev = first;
             while(prev->parent != prev)
             {
-                prev = prev->parent;
+                prev = prev->parent->parent;
             }
             
             if(first->parent == prev)
                 return prev;
                 
-            Node* leader = prev;
+            Vertex* leader = prev;
             prev = first;
             // path compression
-            Node* newParent;
+            Vertex* newParent;
             while(prev->parent != prev)
             {
                 newParent = prev->parent;
@@ -247,21 +212,21 @@ class DisjointSet{
             return find(v1) == find(v2);
         }
 };
-
+bool edgeSort(Edge *i, Edge *j) {return i->weight < j->weight;}
 long kruskal(Graph* G){
     Edge** mst = new Edge*[G->numVertices]; 
 
     Edge** edgeList = G->edgeList;
     
-    sort(edgeList, edgeList + G->numEdges, Edge::compare);
+    sort(edgeList, edgeList + G->numEdges, edgeSort);
 
     DisjointSet* ds = new DisjointSet(G->vertexList, G->numVertices);
 
     long j = 0;
     Edge* e;
 
-    Node* n1;
-    Node* n2;
+    Vertex* n1;
+    Vertex* n2;
     for(int i = 0; i<G->numEdges; i++)
     {
         e = edgeList[i];
