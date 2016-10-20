@@ -157,9 +157,10 @@ class DisjointSetArray{
             int leader = prev;
             prev = first;
             // path compression
+            int newParent;
             while(parents[prev] != prev)
             {
-                int newParent = parents[prev];
+                newParent = parents[prev];
                 parents[prev] = leader;
                 prev = newParent;
             }
@@ -180,8 +181,7 @@ class DisjointSet{
             nodes = new Node*[numVertices];
             for(int i = 0; i<numVertices; i++)
             {
-                long id = v[i]->id;
-                nodes[id] = new Node();
+                nodes[v[i]->id] = new Node();
             }
         }
 
@@ -205,11 +205,11 @@ class DisjointSet{
         void setUnion(Node* parent1, Node* parent2){
             if(parent1->rank > parent2->rank)
             {
-                parent1->parent = parent2;
+                parent2->parent = parent1;
             }
             else if(parent1->rank < parent2->rank)
             {
-                parent2->parent = parent1;
+                parent1->parent = parent2;
             }
             else
             {
@@ -232,9 +232,10 @@ class DisjointSet{
             Node* leader = prev;
             prev = first;
             // path compression
+            Node* newParent;
             while(prev->parent != prev)
             {
-                Node* newParent = prev->parent;
+                newParent = prev->parent;
                 prev->parent = leader;
                 prev = newParent;
             }
@@ -258,15 +259,6 @@ long kruskal(Graph* G){
 
     long j = 0;
     Edge* e;
-    // for(int i = 0; i<G->numEdges; i++)
-    // {
-    //     e = edgeList[i];
-    //     if(!ds->sameSet(e->v1->id, e->v2->id))
-    //     {
-    //         ds->setUnion(e->v1->id, e->v2->id);
-    //         mst[j++] = e;
-    //     }
-    // }
 
     Node* n1;
     Node* n2;
@@ -367,7 +359,7 @@ int main(int argc, char* argv[]){
         return 0;
     }
 
-    //cout <<  kruskal(G) << endl;
-    cout <<  kruskalArray(G) << endl;
+    cout <<  kruskal(G) << endl;
+    //cout <<  kruskalArray(G) << endl;
     //cout <<  prim(G) << endl;
 }
