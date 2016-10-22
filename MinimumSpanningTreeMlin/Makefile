@@ -1,7 +1,7 @@
-default: mst
+CC = $(CXX)
+CXXFLAGS = -O2 -Wall -std=c++11
 
-mst: mst.cpp graph.cpp
-	g++ -O2 -Wall -std=c++11 -o mst mst.cpp graph.cpp -fopenmp
+kruskal: kruskal.o graph.o disjointset.o countingsort.o
 
 clean:
-	rm -f mst
+	$(RM) kruskal *.o

@@ -1,4 +1,5 @@
 #include <fstream>
+#include <iostream>
 #include "graph.h"
 
 unsigned int Random::rand(){
