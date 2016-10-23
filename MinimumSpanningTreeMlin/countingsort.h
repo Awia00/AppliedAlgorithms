@@ -4,6 +4,6 @@
 
 #include "graph.h"
 
-Edge **countingSort(Edge **edges, const int length, const int bucketNumber);
+Edge *countingSort(Edge *edges, const int length, const int bucketNumber);
 
 #endif

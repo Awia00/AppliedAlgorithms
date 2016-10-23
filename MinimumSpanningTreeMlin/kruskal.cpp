@@ -7,23 +7,23 @@ using namespace std;
 bool edgeSort(Edge *i, Edge *j) {return i->weight < j->weight;}
 
 long kruskal(const Graph* G, const long numVertices){
-    Edge** edgeList = G->edgeList;
+    Edge *edgeList = G->edgeList;
     const long numEdges = G->numEdges;
     DisjointSet *set = new DisjointSet(numVertices);
 
-    edgeList = countingSort(edgeList, numEdges, 10000);
+    edgeList = countingSort(edgeList, numEdges, 20000);
 
     unsigned int hash = 0;
     Random randGenerator(0);
     int edgeNumber = 0;
-    Edge *e; long v1, v2; 
+    Edge e; long v1, v2; 
 
     for(int i = 0; i < numEdges && edgeNumber < numVertices-1; i++) {
         e = edgeList[i];
-        v1 = e->v1->id, v2 = e->v2->id;
+        v1 = e.v1, v2 = e.v2;
 
         if (!set->sameSet(v1, v2)) {
-            hash += randGenerator.hashRand(e->weight);
+            hash += randGenerator.hashRand(e.weight);
             set->setUnion(v1, v2);
             edgeNumber++;
         }
