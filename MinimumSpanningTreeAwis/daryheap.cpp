@@ -9,7 +9,7 @@ void DaryHeap::moveUp(long index, long w)
     long parent = getParent(index);
     if(index > 0)
     {
-        while(weights[vertexIds[parent]] > w)
+        while(heap[parent].weight > w)
         {
             swap(index, parent);
             index = parent;
@@ -24,69 +24,63 @@ void DaryHeap::moveUp(long index, long w)
 
 void DaryHeap::insert(Vertex* to, Edge* by)
 {
-    if(edgesTo[to->id] == NULL)
+    long heapIndex = vertexToHeapIndex[to->id];
+    if(heapIndex == -1) // insert
     {
-        long w = by->weight;
-        //insert
-        vertexIds[last] = to->id;
-        weights[to->id] = w;
-        edgesTo[to->id] = by;
+        Node newNode = Node(to->id, by->weight, by);
+        heap[last] = newNode;
+        vertexToHeapIndex[to->id] = last;
         
-        // move up
-        moveUp(last, w);
+        moveUp(last, newNode.weight);
         last++;
     }
-    else if(by->weight < weights[to->id])
+    else if(by->weight < heap[heapIndex].weight)
     {
-        long w = by->weight;
-        weights[to->id] = w;
-        edgesTo[to->id] = by;
-
-        long insert = -1;
-        for(int i = 0; i<=last; i++)
-        {
-            if(vertexIds[i] == to->id)
-            {
-                insert = i;
-                break;
-            }
-        }
+        heap[heapIndex].weight = by->weight;
+        heap[heapIndex].edge = by;
         
-        moveUp(insert, w);
+        moveUp(heapIndex, heap[heapIndex].weight);
     }
 }
 
 Edge* DaryHeap::pickTop()
 {
     swap(0, last-1);
-    long insert = 0;
-    long w = weights[vertexIds[insert]];
+    long index = 0;
+    long w = heap[0].weight;
     if(last >= 1)
     {
-        int* children = getChildArray(insert);
-        long currentW = weights[vertexIds[children[0]]];
-        long choosenChild = children[0];
+        Node* children = getChildArray(index);
+        long currentW = 10000;
+        long choosenChild = -1;
         while(children != NULL)
         {
             for(int i = 0; i<d; i++)
             {
-                if(insert + i >= last)
+                if(index + i + 1 >= last)
                 {
-                    children = NULL;
                     break; 
                 }
-                
-                if(vertexIds[children[i]] < w || vertexIds[children[i]] < currentW)
+                else if(children[i].weight < w && children[i].weight < currentW)
                 {
-                    currentW = weights[vertexIds[children[i]]];
+                    currentW = children[i].weight;
                     choosenChild = i;
                 }   
             }
-            w = currentW;
-            insert = choosenChild + insert;
+            if(choosenChild == -1) // it shall notmove down anymore
+            {
+                goto stop;
+            }
+            index = d*index + choosenChild + 1;
+            children = getChildArray(index);
+            
+            choosenChild = -1;
+            currentW = 10000;
         }
     }
-    return edgesTo[vertexIds[--last]];
+    stop: 
+    vertexToHeapIndex[last-1] = -1;
+    return heap[--last].edge;
 }
 
 long DaryHeap::getParent(long index)
@@ -104,14 +98,18 @@ long DaryHeap::getSecondChild(long index)
     return d*index+2;
 }
 
-int* DaryHeap::getChildArray(long index)
+Node* DaryHeap::getChildArray(long index)
 {
-    return vertexIds + d*index+1;
+    return heap + d*index+1;
 }
 
 void DaryHeap::swap(long from, long to)
 {
-    long tmp = vertexIds[from];
-    vertexIds[from] = vertexIds[to];
-    vertexIds[to] = tmp;
+    Node tmp = heap[from];
+    heap[from] = heap[to];
+    heap[to] = tmp;
+
+    long tmpId = vertexToHeapIndex[from];
+    vertexToHeapIndex[from] = vertexToHeapIndex[to];
+    vertexToHeapIndex[to] = tmpId;
 }

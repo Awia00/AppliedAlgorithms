@@ -4,30 +4,33 @@
 #include "graph.h"
 
 struct Node{
-    long id;
-    long weight = 10000;
-    Edge* edge;
+    public:
+        long id;
+        long weight;
+        Edge* edge;
+        Node()
+        {
+        }
+        Node(long id, long weight, Edge* edge) : id(id), weight(weight), edge(edge)
+        {
+
+        }
 };
 class DaryHeap{
     public:
-        int* weights;
-        int* vertexIds; // in the min heap structure
-        Edge** edgesTo;
-
-        Node* nodes;
+        Node* heap;
+        long* vertexToHeapIndex;
 
         int d;
         int last = 0;
         
         DaryHeap(long numVertices, int dary) {
-            weights = new int[numVertices];
-            nodes = new Node[numVertices];
+            heap = new Node[numVertices];
+            vertexToHeapIndex = new long[numVertices];
             for(int i = 0; i<numVertices; i++)
             {
-                weights[i] = 10000;
+                vertexToHeapIndex[i] = -1;
             }
-            vertexIds = new int[numVertices];
-            edgesTo = new Edge*[numVertices];
             d = dary;
         }
 
@@ -39,7 +42,7 @@ class DaryHeap{
         long getParent(long index);
         long getFirstChild(long index);
         long getSecondChild(long index);
-        int* getChildArray(long index);
+        Node* getChildArray(long index);
         void swap(long from, long to);
         void moveUp(long index, long w);
 };

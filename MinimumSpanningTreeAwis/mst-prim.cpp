@@ -166,6 +166,7 @@ int main(int argc, char* argv[]){
         return 0;
     }
 
+    cout <<  primPrio(G) << endl;
     cout <<  primHeap(G) << endl;
 }
 
