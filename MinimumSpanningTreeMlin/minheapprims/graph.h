@@ -1,38 +1,30 @@
+#ifndef GRAPHHEADER
+
+#define GRAPHHEADER
+
 //header for graph class
 #include <stddef.h>
 #include <iostream>
 #include <string>
 
-class Edge;
+struct HeapEdge {
+    long weight;
+    long vertex;
+};
 
 class Vertex{
     public:
         long id; 
-        Edge** vertexEdgeList;
+        HeapEdge* vertexEdgeList;
         long totalNumEdges;
         long currentNumEdges;
-        Vertex(long inId, long inNumEdges, Edge** inEdgeList = NULL){
+        Vertex(long inId, long inNumEdges){
             id = inId;
             totalNumEdges = inNumEdges;
-            vertexEdgeList =  new Edge*[totalNumEdges];
+            vertexEdgeList = new HeapEdge[totalNumEdges];
             currentNumEdges = 0;
         }
-        void addEdge(Edge* e);
-};
-
-class Edge{
-    public:
-        Vertex* v1;
-        Vertex* v2;
-        long weight;
-        Edge(long inWeight = 1, Vertex* inV1 = NULL, Vertex* inV2 = NULL){
-            v1 = inV1;
-            v2 = inV2;
-            weight = inWeight;
-        }
-        void output(){
-            std::cout << "(" << v1->id << "," << v2-> id << ") w: " << weight << " ";
-        }
+        void addEdge(long vertex, long weight);
 };
 
 class Random{
@@ -61,5 +53,6 @@ class Graph{
         void generateRandomEdgesWeights(unsigned long seed);
         void generateGrid(long numX, long numY, int skipProb,unsigned long seed);
         void graphFromFile(std::string infile, unsigned long seed);
-        unsigned int mstToInt(Edge** mst, long mstsize);
 };
+
+#endif
