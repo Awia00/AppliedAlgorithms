@@ -1,4 +1,3 @@
-
 #include<iostream>
 #include<algorithm>
 #include<queue>
@@ -30,17 +29,15 @@ long prim(Graph* G){
         nodeSet[scan] = true;
 
         for(int i = 0; i < v->currentNumEdges; i++) {
-            Edge *e = v->vertexEdgeList[i];
+            HeapEdge e = v->vertexEdgeList[i];
 
-            long vertex = e->v1->id == scan ? e->v2->id : e->v1->id;
-
-            if (!nodeSet[vertex]) {
-                int curWeight = fringe.weightOfVertex(vertex);
+            if (!nodeSet[e.vertex]) {
+                int curWeight = fringe.weightOfVertex(e.vertex);
 
                 if (curWeight == -1) {
-                    fringe.insert(vertex, e->weight);
-                } else if (curWeight > e->weight) {
-                    fringe.decreaseKey(vertex, e->weight);
+                    fringe.insert(e.vertex, e.weight);
+                } else if (curWeight > e.weight) {
+                    fringe.decreaseKey(e.vertex, e.weight);
                 }
             }
             
@@ -59,17 +56,15 @@ long prim(Graph* G){
             v = G->vertexList[heapEdge.vertex];
 
             for(int i = 0; i < v->currentNumEdges; i++) {
-                Edge *e = v->vertexEdgeList[i];
+                HeapEdge e = v->vertexEdgeList[i];
 
-                long vertex = heapEdge.vertex == e->v1->id ? e->v2->id : e->v1->id;
-                
-                if (!nodeSet[vertex]) {
-                    int curWeight = fringe.weightOfVertex(vertex);
+                if (!nodeSet[e.vertex]) {
+                    int curWeight = fringe.weightOfVertex(e.vertex);
 
                     if (curWeight == -1) {
-                        fringe.insert(vertex, e->weight);
-                    } else if (curWeight > e->weight) {
-                        fringe.decreaseKey(vertex, e->weight);
+                        fringe.insert(e.vertex, e.weight);
+                    } else if (curWeight > e.weight) {
+                        fringe.decreaseKey(e.vertex, e.weight);
                     }
                 }
                 

@@ -17,8 +17,9 @@ unsigned int Random::hashRand(long inIndex){
     return inIndex>>32;
 }
 
-void Vertex::addEdge(Edge* e) {
-    vertexEdgeList[currentNumEdges++] = e;  
+void Vertex::addEdge(long vertex, long weight) {
+    vertexEdgeList[currentNumEdges].vertex = vertex;
+    vertexEdgeList[currentNumEdges++].weight = weight;  
     if(currentNumEdges > totalNumEdges)
     {
         std::cout << "Vertex " << id << " has had more than " << totalNumEdges << " edges assigned." << std::endl;
@@ -35,7 +36,6 @@ void Graph::generateRandomWeights(unsigned long seed){
     {
         vertexList[v] = new Vertex(v,numVertices - 1);
     }
-    Edge* e;
     long edgeweight; 
     Random randGenerator(seed);
     for(long v1 = 0; v1 < numVertices; v1++)
@@ -43,9 +43,8 @@ void Graph::generateRandomWeights(unsigned long seed){
         for(long v2 = v1+1; v2 < numVertices; v2++)
         {
             edgeweight = randGenerator.rand()%10000;
-            e = new Edge(edgeweight, vertexList[v1], vertexList[v2]);
-            vertexList[v1]->addEdge(e);
-            vertexList[v2]->addEdge(e);
+            vertexList[v1]->addEdge(v2, edgeweight);
+            vertexList[v2]->addEdge(v1, edgeweight);
         }
     }
 }
@@ -64,7 +63,6 @@ void Graph::graphFromFile(std::string infile, unsigned long seed){
         vertexList[v] = new Vertex(v,numVertices - 1);
     }
 
-    Edge* e;
     std::string nextLine;
     long v1,v2;
     Random randGenerator(seed);
@@ -92,9 +90,8 @@ void Graph::graphFromFile(std::string infile, unsigned long seed){
                 else
                 {
                     long edgeWeight = randGenerator.rand()%(10000);
-                    e = new Edge(edgeWeight, vertexList[v1], vertexList[v2]);
-                    vertexList[v1]->addEdge(e);
-                    vertexList[v2]->addEdge(e);
+                    vertexList[v1]->addEdge(v2, edgeWeight);
+                    vertexList[v2]->addEdge(v1, edgeWeight);
                 }
             }
         }
@@ -110,7 +107,6 @@ void Graph::generateGrid(long numX, long numY, int skipProb, unsigned long seed)
         //all vertices have degree 4
         vertexList[v] = new Vertex(v,4);
     }
-    Edge* e;
     long edgeweight; 
     long counter = 0;
     Random randGenerator(seed);
@@ -123,9 +119,9 @@ void Graph::generateGrid(long numX, long numY, int skipProb, unsigned long seed)
             if(randGenerator.rand()%skipProb == 0)
             {
                 edgeweight = randGenerator.rand()%(10000);
-                e = new Edge(edgeweight, vertexList[x + y*numX], vertexList[x + y*numX + 1]);
-                vertexList[x+y*numX]->addEdge(e);
-                vertexList[x+y*numX + 1]->addEdge(e);
+                long v1 = x + y*numX, v2 = x + y*numX + 1;
+                vertexList[v1]->addEdge(v2, edgeweight);
+                vertexList[v2]->addEdge(v1, edgeweight);
             }
         }
     }
@@ -138,24 +134,12 @@ void Graph::generateGrid(long numX, long numY, int skipProb, unsigned long seed)
             if(randGenerator.rand()%skipProb == 0)
             {
                 edgeweight = randGenerator.rand()%(10000);
-                e = new Edge(edgeweight, vertexList[x + y*numX], vertexList[x + (y+1)*numX]);
+                long v1 = x + y*numX, v2 = x + (y+1)*numX; 
                 counter++;
-                vertexList[x+y*numX]->addEdge(e);
-                vertexList[x+(y+1)*numX]->addEdge(e);
+                vertexList[v1]->addEdge(v2, edgeweight);
+                vertexList[v2]->addEdge(v1, edgeweight);
             }
         }
     }
     numEdges = counter;
 }
-
-
-unsigned int Graph::mstToInt(Edge** mst, long mstsize){
-    unsigned int total = 0;
-    Random randGenerator(0);
-    for(long i = 0; i < mstsize; i++)
-    {
-        total += randGenerator.hashRand( mst[i]->weight);
-    }
-    return total;
-}
-

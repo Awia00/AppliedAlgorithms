@@ -75,7 +75,7 @@ void MinHeap::insert(long vertex, long weight) {
 }
 
 HeapEdge MinHeap::extractMin() {
-    if (size < 1) { throw "No elements!"; }
+    if (size < 1) { throw length_error("No elements!"); }
     
     HeapEdge min;
     min.vertex = heap[0];

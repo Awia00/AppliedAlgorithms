@@ -2,10 +2,7 @@
 
 #define MinHeapHeader
 
-struct HeapEdge {
-    long weight;
-    long vertex;
-};
+#include "graph.h"
 
 class MinHeap {
     private:
