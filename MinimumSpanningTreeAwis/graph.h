@@ -1,4 +1,7 @@
-//header for graph class
+#ifndef GraphHeader
+
+#define GraphHeader
+
 #include <stddef.h>
 #include <iostream>
 #include <string>
@@ -77,3 +80,5 @@ class Graph{
         void graphFromFile(std::string infile, unsigned long seed);
         unsigned int mstToInt(Edge** mst, long mstsize);
 };
+
+#endif
