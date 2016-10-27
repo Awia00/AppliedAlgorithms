@@ -4,6 +4,23 @@
 
 using namespace std;
 
+void DaryHeap::moveUp(long index, long w)
+{
+    long parent = getParent(index);
+    if(index > 0)
+    {
+        while(weights[vertexIds[parent]] > w)
+        {
+            swap(index, parent);
+            index = parent;
+            parent = getParent(index);
+            if(parent < 0)
+            {
+                break;
+            }
+        }
+    }
+}
 
 void DaryHeap::insert(Vertex* to, Edge* by)
 {
@@ -16,22 +33,7 @@ void DaryHeap::insert(Vertex* to, Edge* by)
         edgesTo[to->id] = by;
         
         // move up
-        long insert = last;
-        long parent = getParent(insert);
-        if(insert > 0)
-        {
-            while(weights[vertexIds[parent]] > w)
-            {
-                cout << "insert" << endl;
-                swap(insert, parent);
-                insert = parent;
-                parent = getParent(insert);
-                if(parent < 0)
-                {
-                    break;
-                }
-            }
-        }
+        moveUp(last, w);
         last++;
     }
     else if(by->weight < weights[to->id])
@@ -50,21 +52,7 @@ void DaryHeap::insert(Vertex* to, Edge* by)
             }
         }
         
-        long parent = getParent(insert);
-        if(insert > 0)
-        {
-            while(weights[vertexIds[parent]] > w)
-            {
-                if(parent < 0)
-                {
-                    break;
-                }
-                cout << "decrease" << endl;
-                swap(insert, parent);
-                insert = parent;
-                parent = getParent(insert);
-            }
-        }
+        moveUp(insert, w);
     }
 }
 
@@ -72,36 +60,32 @@ Edge* DaryHeap::pickTop()
 {
     swap(0, last-1);
     long insert = 0;
-    long child1 = getFirstChild(insert);
-    long child2 = getSecondChild(insert);
     long w = weights[vertexIds[insert]];
-    if(last > 1)
+    if(last >= 1)
     {
-        while(w > weights[vertexIds[child1]] || w > weights[vertexIds[child2]])
+        int* children = getChildArray(insert);
+        long currentW = weights[vertexIds[children[0]]];
+        long choosenChild = children[0];
+        while(children != NULL)
         {
-            cout << "picktop" << endl;
-            if( weights[vertexIds[child1]] < weights[vertexIds[child2]])
+            for(int i = 0; i<d; i++)
             {
-                swap(insert, child1);
-                insert = child1;
+                if(insert + i >= last)
+                {
+                    children = NULL;
+                    break; 
+                }
+                
+                if(vertexIds[children[i]] < w || vertexIds[children[i]] < currentW)
+                {
+                    currentW = weights[vertexIds[children[i]]];
+                    choosenChild = i;
+                }   
             }
-            else
-            {
-                swap(insert, child2);
-                insert = child2;
-            }
-
-            if( getFirstChild(insert) >= last && getSecondChild(insert) >= last)
-            {
-                cout << "break" << endl;
-                break;
-            }
-            cout << "children" << endl;
-            child1 = getFirstChild(insert);
-            child2 = getSecondChild(insert);
+            w = currentW;
+            insert = choosenChild + insert;
         }
     }
-    cout << "edge" << endl;
     return edgesTo[vertexIds[--last]];
 }
 
