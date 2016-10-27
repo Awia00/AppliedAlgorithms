@@ -35,10 +35,8 @@ void Graph::generateRandomWeights(unsigned long seed){
     {
         vertexList[v] = new Vertex(v,numVertices - 1);
     }
-    edgeList = new Edge*[numEdges];
     Edge* e;
     long edgeweight; 
-    long counter = 0;
     Random randGenerator(seed);
     for(long v1 = 0; v1 < numVertices; v1++)
     {
@@ -46,7 +44,6 @@ void Graph::generateRandomWeights(unsigned long seed){
         {
             edgeweight = randGenerator.rand()%10000;
             e = new Edge(edgeweight, vertexList[v1], vertexList[v2]);
-            edgeList[counter++] = e;
             vertexList[v1]->addEdge(e);
             vertexList[v2]->addEdge(e);
         }
@@ -67,9 +64,7 @@ void Graph::graphFromFile(std::string infile, unsigned long seed){
         vertexList[v] = new Vertex(v,numVertices - 1);
     }
 
-    edgeList = new Edge*[numEdges];
     Edge* e;
-    long counter = 0;
     std::string nextLine;
     long v1,v2;
     Random randGenerator(seed);
@@ -98,7 +93,6 @@ void Graph::graphFromFile(std::string infile, unsigned long seed){
                 {
                     long edgeWeight = randGenerator.rand()%(10000);
                     e = new Edge(edgeWeight, vertexList[v1], vertexList[v2]);
-                    edgeList[counter++] = e;
                     vertexList[v1]->addEdge(e);
                     vertexList[v2]->addEdge(e);
                 }
@@ -116,7 +110,6 @@ void Graph::generateGrid(long numX, long numY, int skipProb, unsigned long seed)
         //all vertices have degree 4
         vertexList[v] = new Vertex(v,4);
     }
-    edgeList = new Edge*[numEdges];
     Edge* e;
     long edgeweight; 
     long counter = 0;
@@ -131,7 +124,6 @@ void Graph::generateGrid(long numX, long numY, int skipProb, unsigned long seed)
             {
                 edgeweight = randGenerator.rand()%(10000);
                 e = new Edge(edgeweight, vertexList[x + y*numX], vertexList[x + y*numX + 1]);
-                edgeList[counter++] = e;
                 vertexList[x+y*numX]->addEdge(e);
                 vertexList[x+y*numX + 1]->addEdge(e);
             }
@@ -147,7 +139,7 @@ void Graph::generateGrid(long numX, long numY, int skipProb, unsigned long seed)
             {
                 edgeweight = randGenerator.rand()%(10000);
                 e = new Edge(edgeweight, vertexList[x + y*numX], vertexList[x + (y+1)*numX]);
-                edgeList[counter++] = e;
+                counter++;
                 vertexList[x+y*numX]->addEdge(e);
                 vertexList[x+(y+1)*numX]->addEdge(e);
             }

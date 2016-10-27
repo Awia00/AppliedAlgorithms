@@ -4,11 +4,11 @@
 #include<queue>
 #include<set>
 #include<functional>
+#include<stdexcept>
 #include "graph.h"
 #include "minheap.h"
 
 using namespace std;
-//bool edgeRevSort(Edge *i, Edge *j) {return i->weight > j->weight;}
 
 long prim(Graph* G){
     unsigned int hash = 0;
@@ -19,75 +19,60 @@ long prim(Graph* G){
 
     bool *nodeSet = new bool[G->numVertices];
 
-    Vertex* v = G->vertexList[G->numVertices - 1];
-    long vId = v->id;
-    nodeSet[vId] = true; 
+    long scan = 0;
 
-    for(int i = 0; i < v->currentNumEdges; i++) {
-        Edge *e = v->vertexEdgeList[i];
+    while (scan < G->numVertices) {
+        while (scan < G->numVertices && nodeSet[scan]) scan++;
 
-        if (e->v1->id == vId) {
-            if (!nodeSet[e->v2->id]) {
-                int curWeight = fringe.weightOfVertex(e->v2->id);
+        if (scan >= G->numVertices) break;
 
-                if (curWeight == -1) {
-                    fringe.insert(e->v2->id, e->weight);
-                } else if (curWeight > e->weight) {
-                    fringe.decreaseKey(e->v2->id, e->weight);
-                }
-            }
-        } else {
-            if (!nodeSet[e->v1->id]) {
-                int curWeight = fringe.weightOfVertex(e->v1->id);
-
-                if (curWeight == -1) {
-                    fringe.insert(e->v1->id, e->weight);
-                } else if (curWeight > e->weight) {
-                    fringe.decreaseKey(e->v1->id, e->weight);
-                }
-            }
-        }
-    }
-
-    while(mstsize < G->numVertices - 1 && fringe.any()) {
-        HeapEdge heapEdge = fringe.extractMin();
-        
-        if (nodeSet[heapEdge.vertex]) { cout << "Should never happen" << endl; continue; }
-
-        nodeSet[heapEdge.vertex] = true;
-
-        //cout << "Chose: " << heapEdge.weight << endl;
-
-        hash += randGenerator.hashRand(heapEdge.weight);
-        mstsize++;
-
-        v = G->vertexList[heapEdge.vertex];
+        Vertex* v = G->vertexList[scan];
+        nodeSet[scan] = true;
 
         for(int i = 0; i < v->currentNumEdges; i++) {
             Edge *e = v->vertexEdgeList[i];
 
-            long v1 = e->v1->id, v2 = e->v2->id;
+            long vertex = e->v1->id == scan ? e->v2->id : e->v1->id;
 
-            if (v1 == heapEdge.vertex) {
-                if (!nodeSet[v2]) {
-                    int curWeight = fringe.weightOfVertex(v2);
+            if (!nodeSet[vertex]) {
+                int curWeight = fringe.weightOfVertex(vertex);
+
+                if (curWeight == -1) {
+                    fringe.insert(vertex, e->weight);
+                } else if (curWeight > e->weight) {
+                    fringe.decreaseKey(vertex, e->weight);
+                }
+            }
+            
+        }
+
+        while(mstsize < G->numVertices - 1 && fringe.any()) {
+            HeapEdge heapEdge = fringe.extractMin();
+            
+            if (nodeSet[heapEdge.vertex]) { cout << "Should never happen" << endl; continue; }
+
+            nodeSet[heapEdge.vertex] = true;
+
+            hash += randGenerator.hashRand(heapEdge.weight);
+            mstsize++;
+
+            v = G->vertexList[heapEdge.vertex];
+
+            for(int i = 0; i < v->currentNumEdges; i++) {
+                Edge *e = v->vertexEdgeList[i];
+
+                long vertex = heapEdge.vertex == e->v1->id ? e->v2->id : e->v1->id;
+                
+                if (!nodeSet[vertex]) {
+                    int curWeight = fringe.weightOfVertex(vertex);
 
                     if (curWeight == -1) {
-                        fringe.insert(v2, e->weight);
+                        fringe.insert(vertex, e->weight);
                     } else if (curWeight > e->weight) {
-                        fringe.decreaseKey(v2, e->weight);
+                        fringe.decreaseKey(vertex, e->weight);
                     }
                 }
-            } else {
-                if (!nodeSet[v1]) {
-                    int curWeight = fringe.weightOfVertex(v1);
-
-                    if (curWeight == -1) {
-                        fringe.insert(v1, e->weight);
-                    } else if (curWeight > e->weight) {
-                        fringe.decreaseKey(v1, e->weight);
-                    }
-                }
+                
             }
         }
     }

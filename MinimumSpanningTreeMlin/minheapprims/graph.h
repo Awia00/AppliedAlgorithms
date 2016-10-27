@@ -52,12 +52,10 @@ class Graph{
         long numVertices;
         long numEdges;
         Vertex** vertexList;
-        Edge** edgeList; 
         Graph(long inNumVertices = -1, long inNumEdges = -1){
             numVertices = inNumVertices;
             numEdges = inNumEdges;
             vertexList = NULL;
-            edgeList = NULL;
         }
         void generateRandomWeights(unsigned long seed);
         void generateRandomEdgesWeights(unsigned long seed);

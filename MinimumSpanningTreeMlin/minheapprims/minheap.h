@@ -1,6 +1,7 @@
 #ifndef MinHeapHeader
 
 #define MinHeapHeader
+
 struct HeapEdge {
     long weight;
     long vertex;
@@ -8,7 +9,8 @@ struct HeapEdge {
 
 class MinHeap {
     private:
-        HeapEdge *heap;
+        long *heap;
+        long *weights;
         long size;
 
         void swap(long i, long j);
