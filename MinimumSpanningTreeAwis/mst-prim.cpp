@@ -175,7 +175,7 @@ int main(int argc, char* argv[]){
     // }
     // cout << endl;
     
-    cout << primHeap(G, 10) << endl;
+    cout << primHeap(G, 8) << endl;
     
     //cout << primPrio(G) << endl;
 }

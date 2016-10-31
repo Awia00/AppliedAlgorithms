@@ -163,7 +163,7 @@ int main(int argc, char* argv[]){
         numEdges = numVertices*(numVertices - 1)/2; 
         G = new Graph(numVertices,numEdges);
         G->generateRandomWeights(seed); 
-        cout << primHeap(G, 10) << endl;
+        cout << primHeap(G, 8) << endl;
     }
     else if(argc == 5)
     {
@@ -181,7 +181,7 @@ int main(int argc, char* argv[]){
         if(skipProb > 3)
             cout << kruskal(G) << endl;
         else
-            cout << primHeap(G, 10) << endl;
+            cout << primHeap(G, 8) << endl;
     }
     else
     {
