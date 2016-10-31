@@ -58,6 +58,7 @@ Edge* DaryHeap::pickTop()
         long index = 0;
         long children;
         long w = heap[0].weight; // YOU NEED THIS!
+        long limit;
 
         while(choosenChild != -1)
         {
@@ -67,7 +68,8 @@ Edge* DaryHeap::pickTop()
             
             choosenChild = -1;
             currentW = 10000;
-            for(int i = children; i < children + d && i < last; i++)
+            limit = children + d; limit = limit < last ? limit : last;
+            for(int i = children; i < limit; i++)
             {
                 if(heap[i].weight < w && heap[i].weight < currentW)
                 {

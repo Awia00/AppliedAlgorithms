@@ -60,9 +60,9 @@ long primPrio(Graph* G){
     return G->mstToInt(mst, j); 
 }
 
-long primHeap(Graph* G){
+long primHeap(Graph* G, int d){
     Edge** mst = new Edge*[G->numVertices];
-    DaryHeap* heap = new DaryHeap(G->numVertices, 2);
+    DaryHeap* heap = new DaryHeap(G->numVertices, d);
     
     bool* hasBeenTaken = new bool[G->numVertices];
 
@@ -176,9 +176,9 @@ int main(int argc, char* argv[]){
     // }
     // cout << endl;
     
-    cout << "d-aryheap: " << primHeap(G) << endl;
+    cout << primHeap(G, 10) << endl;
     
-    cout << "  correct: " << primPrio(G) << endl;
+    //cout << primPrio(G) << endl;
 }
 
 
