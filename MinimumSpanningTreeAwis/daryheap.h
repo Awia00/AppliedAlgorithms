@@ -37,12 +37,14 @@ class DaryHeap{
         void insert(Vertex* to, Edge* by);
 
         Edge* pickTop();
+
+        void print();
     
     private:
         long getParent(long index);
         long getFirstChild(long index);
         long getSecondChild(long index);
-        Node* getChildArray(long index);
+        long getChildArray(long index);
         void swap(long from, long to);
         void moveUp(long index, long w);
 };

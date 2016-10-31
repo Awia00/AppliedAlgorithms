@@ -45,42 +45,53 @@ void DaryHeap::insert(Vertex* to, Edge* by)
 
 Edge* DaryHeap::pickTop()
 {
-    swap(0, last-1);
-    long index = 0;
-    long w = heap[0].weight;
-    if(last >= 1)
+    swap(0, --last);
+    Edge* toReturn = heap[last].edge;
+    vertexToHeapIndex[heap[last].id] = -1;
+
+    // sink
+    
+    if(last > 1)
     {
-        Node* children = getChildArray(index);
-        long currentW = 10000;
-        long choosenChild = -1;
-        while(children != NULL)
+        long currentW;
+        long choosenChild = 0;
+        long index = 0;
+        long children;
+        long w = heap[0].weight; // YOU NEED THIS!
+
+        while(choosenChild != -1)
         {
-            for(int i = 0; i<d; i++)
-            {
-                if(index + i + 1 >= last)
-                {
-                    break; 
-                }
-                else if(children[i].weight < w && children[i].weight < currentW)
-                {
-                    currentW = children[i].weight;
-                    choosenChild = i;
-                }   
-            }
-            if(choosenChild == -1) // it shall notmove down anymore
-            {
-                goto stop;
-            }
-            index = d*index + choosenChild + 1;
+            swap(index, choosenChild);
+            index = choosenChild;
             children = getChildArray(index);
             
             choosenChild = -1;
             currentW = 10000;
+            for(int i = children; i < children + d && i < last; i++)
+            {
+                if(heap[i].weight < w && heap[i].weight < currentW)
+                {
+                    currentW = heap[i].weight;
+                    choosenChild = i;
+                }
+            }
         }
     }
-    stop: 
-    vertexToHeapIndex[last-1] = -1;
-    return heap[--last].edge;
+
+    return toReturn;
+}
+
+void DaryHeap::print()
+{
+    cout << "Heap with last: " << last << endl;
+    for(int i = 0; i<last; i++)
+    {
+        cout << "Element at " << i << ": " << endl;
+        cout << "  weight: " << heap[i].weight << endl;
+        cout << "  V-id: " << heap[i].id << endl;
+        cout << "  table: " << vertexToHeapIndex[heap[i].id] << endl;
+    }
+    cout << endl;
 }
 
 long DaryHeap::getParent(long index)
@@ -98,9 +109,9 @@ long DaryHeap::getSecondChild(long index)
     return d*index+2;
 }
 
-Node* DaryHeap::getChildArray(long index)
+long DaryHeap::getChildArray(long index)
 {
-    return heap + d*index+1;
+    return d*index+1;
 }
 
 void DaryHeap::swap(long from, long to)
@@ -109,7 +120,6 @@ void DaryHeap::swap(long from, long to)
     heap[from] = heap[to];
     heap[to] = tmp;
 
-    long tmpId = vertexToHeapIndex[from];
-    vertexToHeapIndex[from] = vertexToHeapIndex[to];
-    vertexToHeapIndex[to] = tmpId;
+    vertexToHeapIndex[heap[to].id] = to;
+    vertexToHeapIndex[heap[from].id] = from;
 }

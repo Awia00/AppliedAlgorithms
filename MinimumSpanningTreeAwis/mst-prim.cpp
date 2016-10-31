@@ -37,6 +37,7 @@ long primPrio(Graph* G){
     
         if(!hasBeenTaken[e->v1->id])
         {
+            hasBeenTaken[e->v1->id] = true;
             for(int i = 0; i < e->v1->currentNumEdges; i++)
             {
                 Edge* newEdge = e->v1->vertexEdgeList[i];
@@ -44,21 +45,17 @@ long primPrio(Graph* G){
                 if(!(hasBeenTaken[newEdge->v1->id] && hasBeenTaken[newEdge->v2->id]))
                     pq.push(newEdge);
             }
-            hasBeenTaken[e->v1->id] = true;
         }
-        if(!hasBeenTaken[e->v2->id])
+        else if(!hasBeenTaken[e->v2->id])
         {
+            hasBeenTaken[e->v2->id] = true;
             for(int i = 0; i < e->v2->currentNumEdges; i++)
             {
                 Edge* newEdge = e->v2->vertexEdgeList[i];
                 if(!(hasBeenTaken[newEdge->v1->id] && hasBeenTaken[newEdge->v2->id]))
                     pq.push(newEdge);
             }    
-            hasBeenTaken[e->v2->id] = true;
         }
-        
-        
-
     }
     return G->mstToInt(mst, j); 
 }
@@ -77,8 +74,12 @@ long primHeap(Graph* G){
     {
         Vertex* to = v->id != edges[i]->v1->id ? edges[i]->v1 : edges[i]->v2;
         heap->insert(to, edges[i]);
+        // heap->print();
     }
-    
+
+    // cout << "first part done" << endl;
+    // heap->print();
+
     while(heap->last != 0)
     {
         Edge* e = heap->pickTop();
@@ -87,9 +88,13 @@ long primHeap(Graph* G){
             continue;
         
         mst[j++] = e;
+
+        // cout << "New Edge in mst: "<< mst[j-1]->weight << endl;
+        // heap->print();
     
         if(!hasBeenTaken[e->v1->id])
         {
+            hasBeenTaken[e->v1->id] = true;
             for(int i = 0; i < e->v1->currentNumEdges; i++)
             {
                 Edge* newEdge = e->v1->vertexEdgeList[i];
@@ -99,12 +104,11 @@ long primHeap(Graph* G){
                     Vertex* to = (e->v1->id != newEdge->v1->id ? newEdge->v1 : newEdge->v2);
                     heap->insert(to, newEdge);
                 }
-                    
             }
-            hasBeenTaken[e->v1->id] = true;
         }
-        if(!hasBeenTaken[e->v2->id])
+        else if(!hasBeenTaken[e->v2->id])
         {
+            hasBeenTaken[e->v2->id] = true;
             for(int i = 0; i < e->v2->currentNumEdges; i++)
             {
                 Edge* newEdge = e->v2->vertexEdgeList[i];
@@ -114,11 +118,11 @@ long primHeap(Graph* G){
                     heap->insert(to, newEdge);
                 }
             }    
-            hasBeenTaken[e->v2->id] = true;
         }
         
-        
-
+        // cout << "New heap:" << endl;
+        // heap->print();
+        // cout << endl << endl;
     }
     return G->mstToInt(mst, j); 
 }
@@ -166,8 +170,15 @@ int main(int argc, char* argv[]){
         return 0;
     }
 
-    cout <<  primPrio(G) << endl;
-    cout <<  primHeap(G) << endl;
+    // for(int i = 0; i < G->numEdges; i++)
+    // {
+    //     cout << G->edgeList[i]->v1->id << ", " << G->edgeList[i]->v2->id << ": " << G->edgeList[i]->weight << endl;
+    // }
+    // cout << endl;
+    
+    cout << "d-aryheap: " << primHeap(G) << endl;
+    
+    cout << "  correct: " << primPrio(G) << endl;
 }
 
 
