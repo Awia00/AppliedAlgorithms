@@ -8,57 +8,71 @@
 
 #include "graph.h"
 #include "daryheap.h"
+#include "disjointset.h"
 
 using namespace std;
 
-long primPrio(Graph* G){
-    Edge** mst = new Edge*[G->numVertices];
-    priority_queue<Edge*, vector<Edge*>, function<bool(Edge*, Edge*)>> pq(Edge::compare2);
-    
-    bool* hasBeenTaken = new bool[G->numVertices];
-
-    long j = 0;
-    Vertex* v = G->vertexList[j];
-    hasBeenTaken[v->id] = true;
-    for(int i = 0; i < v->currentNumEdges; i++)
+Edge** countSort(Edge** arr, int size)
+{
+    Edge** output;
+    output = new Edge*[size];
+ 
+    int* count = new int[10000];
+    int i;
+ 
+    for(i = 0; i < size; ++i)
     {
-        pq.push(v->vertexEdgeList[i]);
+        ++count[arr[i]->weight];
     }
-    
-    while(!pq.empty())
+        
+    for (i = 1; i <= 10000; ++i)
     {
-        Edge* e = pq.top();
-        pq.pop();
-        
-        if(hasBeenTaken[e->v1->id] && hasBeenTaken[e->v2->id])
-            continue;
-        
-        mst[j++] = e;
-    
-        if(!hasBeenTaken[e->v1->id])
-        {
-            hasBeenTaken[e->v1->id] = true;
-            for(int i = 0; i < e->v1->currentNumEdges; i++)
-            {
-                Edge* newEdge = e->v1->vertexEdgeList[i];
-
-                if(!(hasBeenTaken[newEdge->v1->id] && hasBeenTaken[newEdge->v2->id]))
-                    pq.push(newEdge);
-            }
-        }
-        else if(!hasBeenTaken[e->v2->id])
-        {
-            hasBeenTaken[e->v2->id] = true;
-            for(int i = 0; i < e->v2->currentNumEdges; i++)
-            {
-                Edge* newEdge = e->v2->vertexEdgeList[i];
-                if(!(hasBeenTaken[newEdge->v1->id] && hasBeenTaken[newEdge->v2->id]))
-                    pq.push(newEdge);
-            }    
-        }
+        count[i] += count[i-1];
     }
-    return G->mstToInt(mst, j); 
+        
+    for (i = 0; i<size; ++i)
+    {
+        output[count[arr[i]->weight]-1] = arr[i];
+        count[arr[i]->weight]--;
+    }
+ 
+    return output;
 }
+
+
+long kruskal(Graph* G){
+    //Edge** mst = new Edge*[G->numVertices]; 
+
+    Edge** edgeList = G->edgeList;
+    
+    //sort(edgeList, edgeList + G->numEdges, edgeSort);
+    edgeList = countSort(edgeList, G->numEdges);
+
+    DisjointSet* ds = new DisjointSet(G->vertexList, G->numVertices);
+
+
+    Edge* e;
+    Vertex* n1;
+    Vertex* n2;
+    Random randGenerator(0);
+    unsigned int hash = 0;
+
+    for(int i = 0; i<G->numEdges; i++)
+    {
+        e = edgeList[i];
+        n1 = ds->find(e->v1->id);
+        n2 = ds->find(e->v2->id);
+        if(!(n1 == n2))
+        {
+            ds->setUnion(n1, n2);
+            //mst[j++] = e;
+            hash += randGenerator.hashRand(e->weight);
+        }
+    }
+
+    return hash;
+}
+
 
 long primHeap(Graph* G, int d){
     DaryHeap* heap = new DaryHeap(G->numVertices, d);
@@ -135,7 +149,7 @@ long primHeap(Graph* G, int d){
             {
                 toPick = i;
                 isDone = false;
-                //howManyTimes++;
+                howManyTimes++;
                 break;
             }
         }
@@ -158,6 +172,7 @@ int main(int argc, char* argv[]){
         numEdges = atol(argv[3]);
         G = new Graph(numVertices,numEdges);
         G->graphFromFile(argv[1], seed);
+        cout << kruskal(G) << endl;
     } 
     else if(argc == 3)
     {
@@ -167,6 +182,7 @@ int main(int argc, char* argv[]){
         numEdges = numVertices*(numVertices - 1)/2; 
         G = new Graph(numVertices,numEdges);
         G->generateRandomWeights(seed); 
+        cout << primHeap(G, 10) << endl;
     }
     else if(argc == 5)
     {
@@ -180,6 +196,11 @@ int main(int argc, char* argv[]){
         numEdges = numX*(numY - 1) + numY*(numX - 1);
         G = new Graph(numVertices,numEdges);
         G->generateGrid(numX,numY,skipProb,seed);
+
+        if(skipProb > 1)
+            cout << kruskal(G) << endl;
+        else
+            cout << primHeap(G, 10) << endl;
     }
     else
     {
@@ -192,10 +213,6 @@ int main(int argc, char* argv[]){
     //     cout << G->edgeList[i]->v1->id << ", " << G->edgeList[i]->v2->id << ": " << G->edgeList[i]->weight << endl;
     // }
     // cout << endl;
-    
-    cout << primHeap(G, 10) << endl;
-    
-    //cout << primPrio(G) << endl;
 }
 
 
