@@ -61,70 +61,87 @@ long primPrio(Graph* G){
 }
 
 long primHeap(Graph* G, int d){
-    Edge** mst = new Edge*[G->numVertices];
     DaryHeap* heap = new DaryHeap(G->numVertices, d);
     
     bool* hasBeenTaken = new bool[G->numVertices];
 
-    long j = 0;
-    Vertex* v = G->vertexList[j];
-    hasBeenTaken[v->id] = true;
-    Edge** edges = v->vertexEdgeList;
-    for(int i = 0; i < v->currentNumEdges; i++)
-    {
-        Vertex* to = v->id != edges[i]->v1->id ? edges[i]->v1 : edges[i]->v2;
-        heap->insert(to, edges[i]);
-        // heap->print();
-    }
-
     // cout << "first part done" << endl;
     // heap->print();
-
-    while(heap->last != 0)
+    bool isDone = false;
+    long toPick = 0;
+    long howManyTimes = 0;
+    Random randGenerator(0);
+    unsigned int hash = 0;
+    while(!isDone)
     {
-        Edge* e = heap->pickTop();
-
-        if(hasBeenTaken[e->v1->id] && hasBeenTaken[e->v2->id])
-            continue;
-        
-        mst[j++] = e;
-
-        // cout << "New Edge in mst: "<< mst[j-1]->weight << endl;
-        // heap->print();
-    
-        if(!hasBeenTaken[e->v1->id])
+        Vertex* v = G->vertexList[toPick];
+        hasBeenTaken[v->id] = true;
+        Edge** edges = v->vertexEdgeList;
+        for(int i = 0; i < v->currentNumEdges; i++)
         {
-            hasBeenTaken[e->v1->id] = true;
-            for(int i = 0; i < e->v1->currentNumEdges; i++)
-            {
-                Edge* newEdge = e->v1->vertexEdgeList[i];
+            Vertex* to = v->id != edges[i]->v1->id ? edges[i]->v1 : edges[i]->v2;
+            heap->insert(to, edges[i]);
+            // heap->print();
+        }
+        while(heap->last != 0)
+        {
+            Edge* e = heap->pickTop();
 
-                if(!(hasBeenTaken[newEdge->v1->id] && hasBeenTaken[newEdge->v2->id]))
+            if(hasBeenTaken[e->v1->id] && hasBeenTaken[e->v2->id])
+                continue;
+            
+            hash += randGenerator.hashRand(e->weight);
+
+            // cout << "New Edge in mst: "<< mst[j-1]->weight << endl;
+            // heap->print();
+        
+            if(!hasBeenTaken[e->v1->id])
+            {
+                hasBeenTaken[e->v1->id] = true;
+                for(int i = 0; i < e->v1->currentNumEdges; i++)
                 {
-                    Vertex* to = (e->v1->id != newEdge->v1->id ? newEdge->v1 : newEdge->v2);
-                    heap->insert(to, newEdge);
+                    Edge* newEdge = e->v1->vertexEdgeList[i];
+
+                    if(!(hasBeenTaken[newEdge->v1->id] && hasBeenTaken[newEdge->v2->id]))
+                    {
+                        Vertex* to = (e->v1->id != newEdge->v1->id ? newEdge->v1 : newEdge->v2);
+                        heap->insert(to, newEdge);
+                    }
                 }
             }
-        }
-        else if(!hasBeenTaken[e->v2->id])
-        {
-            hasBeenTaken[e->v2->id] = true;
-            for(int i = 0; i < e->v2->currentNumEdges; i++)
+            else if(!hasBeenTaken[e->v2->id])
             {
-                Edge* newEdge = e->v2->vertexEdgeList[i];
-                if(!(hasBeenTaken[newEdge->v1->id] && hasBeenTaken[newEdge->v2->id]))
+                hasBeenTaken[e->v2->id] = true;
+                for(int i = 0; i < e->v2->currentNumEdges; i++)
                 {
-                    Vertex* to = (e->v2->id != newEdge->v2->id ? newEdge->v2 : newEdge->v1);
-                    heap->insert(to, newEdge);
-                }
-            }    
+                    Edge* newEdge = e->v2->vertexEdgeList[i];
+                    if(!(hasBeenTaken[newEdge->v1->id] && hasBeenTaken[newEdge->v2->id]))
+                    {
+                        Vertex* to = (e->v2->id != newEdge->v2->id ? newEdge->v2 : newEdge->v1);
+                        heap->insert(to, newEdge);
+                    }
+                }    
+            }
+            
+            // cout << "New heap:" << endl;
+            // heap->print();
+            // cout << endl << endl;
         }
         
-        // cout << "New heap:" << endl;
-        // heap->print();
-        // cout << endl << endl;
+        isDone = true;
+        for(int i = 1; i<G->numVertices; i++)
+        {
+            if(!hasBeenTaken[i])
+            {
+                toPick = i;
+                isDone = false;
+                howManyTimes++;
+                break;
+            }
+        }
     }
-    return G->mstToInt(mst, j); 
+    cout << "how many trees in forest: " << howManyTimes << endl;
+    return hash;
 }
 
 
