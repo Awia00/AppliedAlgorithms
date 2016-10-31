@@ -65,15 +65,18 @@ long primHeap(Graph* G, int d){
     
     bool* hasBeenTaken = new bool[G->numVertices];
 
-    // cout << "first part done" << endl;
-    // heap->print();
-    bool isDone = false;
     long toPick = 0;
     long howManyTimes = 0;
     Random randGenerator(0);
     unsigned int hash = 0;
-    while(!isDone)
+    while(toPick < G->numVertices)
     {
+        howManyTimes++;
+        while(toPick < G->numVertices && hasBeenTaken[toPick]) 
+             toPick++;
+        if (toPick >= G->numVertices) 
+            break;
+
         Vertex* v = G->vertexList[toPick];
         hasBeenTaken[v->id] = true;
         Edge** edges = v->vertexEdgeList;
@@ -81,7 +84,6 @@ long primHeap(Graph* G, int d){
         {
             Vertex* to = v->id != edges[i]->v1->id ? edges[i]->v1 : edges[i]->v2;
             heap->insert(to, edges[i]);
-            // heap->print();
         }
         while(heap->last != 0)
         {
@@ -91,9 +93,6 @@ long primHeap(Graph* G, int d){
                 continue;
             
             hash += randGenerator.hashRand(e->weight);
-
-            // cout << "New Edge in mst: "<< mst[j-1]->weight << endl;
-            // heap->print();
         
             if(!hasBeenTaken[e->v1->id])
             {
@@ -122,25 +121,8 @@ long primHeap(Graph* G, int d){
                     }
                 }    
             }
-            
-            // cout << "New heap:" << endl;
-            // heap->print();
-            // cout << endl << endl;
-        }
-        
-        isDone = true;
-        for(int i = G->numVertices-1; i>0; i--)
-        {
-            if(!hasBeenTaken[i])
-            {
-                toPick = i;
-                isDone = false;
-                //howManyTimes++;
-                break;
-            }
         }
     }
-    //cout << "how many trees in forest: " << howManyTimes << endl;
     return hash;
 }
 
