@@ -9,21 +9,20 @@
 
 using namespace std;
 
-long prim(Graph* G){
+long prim(Graph* G, const long numVertices){
     unsigned int hash = 0;
     Random randGenerator(0);
-    long mstsize = 0;
 
-    MinHeap fringe = MinHeap(G->numVertices);
+    MinHeap fringe = MinHeap(numVertices);
 
-    bool *nodeSet = new bool[G->numVertices];
+    bool *nodeSet = new bool[numVertices];
 
     long scan = 0;
 
-    while (scan < G->numVertices) {
-        while (scan < G->numVertices && nodeSet[scan]) scan++;
+    while (scan < numVertices) {
+        while (scan < numVertices && nodeSet[scan]) scan++;
 
-        if (scan >= G->numVertices) break;
+        if (scan >= numVertices) break;
 
         Vertex* v = G->vertexList[scan];
         nodeSet[scan] = true;
@@ -43,15 +42,12 @@ long prim(Graph* G){
             
         }
 
-        while(mstsize < G->numVertices - 1 && fringe.any()) {
+        while(fringe.size != 0) {
             HeapEdge heapEdge = fringe.extractMin();
             
-            if (nodeSet[heapEdge.vertex]) { cout << "Should never happen" << endl; continue; }
-
             nodeSet[heapEdge.vertex] = true;
 
             hash += randGenerator.hashRand(heapEdge.weight);
-            mstsize++;
 
             v = G->vertexList[heapEdge.vertex];
 
@@ -116,5 +112,5 @@ int main(int argc, char* argv[]){
         cout << "Error: " << argc - 1 << "arguments; should be 2, 3, or 4\n";
         return 0;
     }
-    cout <<  prim(G) << endl;
+    cout <<  prim(G, numVertices) << endl;
 }

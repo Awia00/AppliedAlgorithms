@@ -8,6 +8,9 @@ void MinHeap::swap(long i, long j) {
     long swap = heap[i];
     heap[i] = heap[j];
     heap[j] = swap;
+
+    map[heap[i]] = i;
+    map[heap[j]] = j;
 }
 
 void MinHeap::sink(long i) {
@@ -60,9 +63,11 @@ void MinHeap::rise(long i) {
 MinHeap::MinHeap(long maxSize) {
     heap = new long[maxSize];
     weights = new long[maxSize];
+    map = new long[maxSize];
 
     for (long i = 0; i < maxSize; i++) {
         weights[i] = 10001;
+        map[i] = -1;
     }
 
     size = 0;
@@ -71,6 +76,7 @@ MinHeap::MinHeap(long maxSize) {
 void MinHeap::insert(long vertex, long weight) {
     weights[vertex] = weight;
     heap[size] = vertex;
+    map[vertex] = size;
     rise(size++);
 }
 
@@ -79,8 +85,10 @@ HeapEdge MinHeap::extractMin() {
     
     HeapEdge min;
     min.vertex = heap[0];
+    map[heap[0]] = -1;
     min.weight = weights[min.vertex];
     heap[0] = heap[--size];
+    map[heap[0]] = 0;
 
     sink(0);
 
@@ -90,18 +98,10 @@ HeapEdge MinHeap::extractMin() {
 void MinHeap::decreaseKey(long vertex, long newWeight) {
     if (weights[vertex] > newWeight) {
         weights[vertex] = newWeight;
-
-        long i = 0;
-        while (i < size && heap[i] != vertex) { i++; }
-        
-        rise(i);
+        rise(map[vertex]);
     }
 }
 
 long MinHeap::weightOfVertex(long vertex) {
     return weights[vertex] > 10000 ? -1 : weights[vertex];
-}
-
-bool MinHeap::any() {
-    return size > 0;
 }
