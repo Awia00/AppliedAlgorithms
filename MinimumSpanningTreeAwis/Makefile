@@ -1,8 +1,8 @@
 CC=g++
 CFLAGS= -O2 -Wall -std=c++11
 
-HEADERSKRUSKAL = graph.h disjointset.h disjointsetarray.h
-KRUSKAL = mst-kruskal.cpp graph.cpp disjointset.cpp disjointsetarray.cpp
+HEADERSKRUSKAL = graph.h disjointset.h
+KRUSKAL = mst-kruskal.cpp graph.cpp disjointset.cpp
 
 HEADERSPRIM = graph.h daryheap.h
 PRIM = mst-prim.cpp graph.cpp daryheap.cpp

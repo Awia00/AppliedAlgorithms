@@ -8,7 +8,6 @@
 
 #include "graph.h"
 #include "disjointset.h"
-#include "disjointsetarray.h"
 
 using namespace std;
 // The main function that sort the given string arr[] in
@@ -73,36 +72,6 @@ long kruskal(Graph* G){
 
     return hash;
 }
-
-long kruskalArray(Graph* G){
-    Edge** mst = new Edge*[G->numVertices]; 
-
-    Edge** edgeList = G->edgeList;
-    
-    sort(edgeList, edgeList + G->numEdges, Edge::compare);
-
-    DisjointSetArray* ds = new DisjointSetArray(G->vertexList, G->numVertices);
-
-    long j = 0;
-    Edge* e;
-
-    int n1;
-    int n2;
-    for(int i = 0; i<G->numEdges; i++)
-    {
-        e = edgeList[i];
-        n1 = ds->find(e->v1->id);
-        n2 = ds->find(e->v2->id);
-        if(!(n1 == n2))
-        {
-            ds->setUnionParents(n1, n2);
-            mst[j++] = e;
-        }
-    }
-
-    return G->mstToInt(mst, j);
-}
-
 
 
 int main(int argc, char* argv[]){

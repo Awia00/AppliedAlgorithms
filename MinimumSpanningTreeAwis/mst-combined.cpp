@@ -178,7 +178,7 @@ int main(int argc, char* argv[]){
         G = new Graph(numVertices,numEdges);
         G->generateGrid(numX,numY,skipProb,seed);
 
-        if(skipProb > 3)
+        if(skipProb > 20)
             cout << kruskal(G) << endl;
         else
             cout << primHeap(G, 8) << endl;

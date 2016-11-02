@@ -34,7 +34,7 @@ void DaryHeap::insert(Vertex* to, Edge* by)
         moveUp(last, newNode.weight);
         last++;
     }
-    else if(by->weight < heap[heapIndex].weight)
+    else if(by->weight < heap[heapIndex].weight) // update
     {
         heap[heapIndex].weight = by->weight;
         heap[heapIndex].edge = by;

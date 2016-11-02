@@ -11,55 +11,6 @@
 
 using namespace std;
 
-long primPrio(Graph* G){
-    Edge** mst = new Edge*[G->numVertices];
-    priority_queue<Edge*, vector<Edge*>, function<bool(Edge*, Edge*)>> pq(Edge::compare2);
-    
-    bool* hasBeenTaken = new bool[G->numVertices];
-
-    long j = 0;
-    Vertex* v = G->vertexList[j];
-    hasBeenTaken[v->id] = true;
-    for(int i = 0; i < v->currentNumEdges; i++)
-    {
-        pq.push(v->vertexEdgeList[i]);
-    }
-    
-    while(!pq.empty())
-    {
-        Edge* e = pq.top();
-        pq.pop();
-        
-        if(hasBeenTaken[e->v1->id] && hasBeenTaken[e->v2->id])
-            continue;
-        
-        mst[j++] = e;
-    
-        if(!hasBeenTaken[e->v1->id])
-        {
-            hasBeenTaken[e->v1->id] = true;
-            for(int i = 0; i < e->v1->currentNumEdges; i++)
-            {
-                Edge* newEdge = e->v1->vertexEdgeList[i];
-
-                if(!(hasBeenTaken[newEdge->v1->id] && hasBeenTaken[newEdge->v2->id]))
-                    pq.push(newEdge);
-            }
-        }
-        else if(!hasBeenTaken[e->v2->id])
-        {
-            hasBeenTaken[e->v2->id] = true;
-            for(int i = 0; i < e->v2->currentNumEdges; i++)
-            {
-                Edge* newEdge = e->v2->vertexEdgeList[i];
-                if(!(hasBeenTaken[newEdge->v1->id] && hasBeenTaken[newEdge->v2->id]))
-                    pq.push(newEdge);
-            }    
-        }
-    }
-    return G->mstToInt(mst, j); 
-}
-
 long primHeap(Graph* G, int d){
     DaryHeap* heap = new DaryHeap(G->numVertices, d);
     
