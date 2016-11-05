@@ -56,15 +56,14 @@ public class ExperimentRunner
                 }
                 double mean = st/count;
                 //System.out.printf("%-25s %15.1f us %10.2f %10d%n", Arrays.toString(defaults), mean, stdev(stt, mean), count); 
-                System.out.printf("%-25s %15.1f   us %12.2f\n", Arrays.toString(defaults), mean, stdev(stt, mean)); {
+                System.out.printf("%-25s %15.1f   us %12.2f\n", Arrays.toString(defaults), mean, stdev(stt, mean));
                 
                 if(skipTimes)
                     i *= skip;
                 else
                     i += skip;
             }
-            
-        }catch (Exception e)
+        } catch (Exception e)
         {
             System.out.println(e);
         }
