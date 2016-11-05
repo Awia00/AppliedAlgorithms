@@ -8,7 +8,7 @@ class MinHeap {
     private:
         long *heap;
         long *weights;
-        long size;
+        long *map;
 
         void swap(long i, long j);
 
@@ -17,6 +17,8 @@ class MinHeap {
         void rise(long i);
 
     public:
+        long size;
+
         MinHeap(long maxSize);
 
         void insert(long vertex, long weight);
@@ -26,7 +28,5 @@ class MinHeap {
         void decreaseKey(long vertex, long newWeight);
 
         long weightOfVertex(long vertex);
-
-        bool any();
 };
 #endif
