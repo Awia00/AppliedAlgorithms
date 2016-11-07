@@ -14,11 +14,8 @@ class Vertex{
         Edge** vertexEdgeList;
         long totalNumEdges;
         long currentNumEdges;
-        Vertex* parent;
-        int rank = 0;
         Vertex(long inId, long inNumEdges, Edge** inEdgeList = NULL){
             id = inId;
-            parent = this;
             totalNumEdges = inNumEdges;
             vertexEdgeList =  new Edge*[totalNumEdges];
             currentNumEdges = 0;
