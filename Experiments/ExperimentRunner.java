@@ -36,7 +36,7 @@ public class ExperimentRunner
         try{
             double runningTime = 0.0;
             int i = Integer.parseInt(defaults[chosenVariableIndex]);
-            while(runningTime < 3)
+            while(runningTime < 4)
             {
                 defaults[chosenVariableIndex] = i + "";
                 
@@ -97,7 +97,7 @@ public class ExperimentRunner
             defaults[i+1] = args[i+4];
         }
         ExperimentRunner er = new ExperimentRunner(processName, argAmt, chosenVariableIndex, skip, defaults);
-        er.runExperiments(false);
+        er.runExperiments(true);
     }
 }
 
