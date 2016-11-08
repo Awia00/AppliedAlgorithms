@@ -50,10 +50,9 @@ long kruskal(Graph* G){
 
     DisjointSet* ds = new DisjointSet(G->vertexList, G->numVertices);
 
-
     Edge* e;
-    Vertex* n1;
-    Vertex* n2;
+    Node* n1;
+    Node* n2;
     Random randGenerator(0);
     unsigned int hash = 0;
 
