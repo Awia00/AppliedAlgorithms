@@ -57,28 +57,20 @@ int f(int x) {
     return ((x*0Xbc164501) & 0X7fe00000) >> 21;
 }
 
-int rho(int x)
-{
-    int rho = 0;
-    for (int j = 1 << (BIT_AMT-2); j > 0; j = j>>1) {
-        rho++;
-        if ((j & x) > 0) {
-            return rho;
-        }
-    }
-    return rho;
-}
-
 double hyperloglog(int m)
 {
-    int* M = (int*)calloc(m, sizeof(M));
+    int* M = (int*)calloc(m, sizeof(int));
     //printf("hey\n");
     int input;
     int result = scanf("%d", &input);
     while(result == 1)
     {
         int j = f(input);
-        M[j] = MAX(M[j], rho(h(input)));
+        int new = __builtin_clz(h(input))+1;
+        if(M[j] < new)
+        {
+            M[j] = new;
+        }
         result = scanf("%d", &input);
     }
 
@@ -103,8 +95,8 @@ double hyperloglog(int m)
 }
 
 int main(int argc, char **argv) {
-    int input;
-    int threshold = scanf("%d", &input);
+    int threshold;
+    int exit = scanf("%d", &threshold);
     double result = hyperloglog(1024);
     if (result < threshold) 
         printf("%s\n","below");
