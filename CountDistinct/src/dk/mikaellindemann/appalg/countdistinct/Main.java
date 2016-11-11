@@ -26,25 +26,11 @@ public class Main {
         }
     }
 
-    private static int rho(int hx) {
-        // ρ(h(x)) = min{i | h(x)k−i = 1}
-        int rho = 0;
-        for (int j = 1 << 30; j > 0; j >>= 1) {
-            rho++;
-            if ((j & hx) > 0) {
-                return rho;
-            }
-        }
-        return rho;
-    }
-
     private static double hyperLogLog(int m, Scanner input) {
         int[] M = new int[m];
 
         // for i:=0 to m-1 do M[i]:=0
-        for (int i = 0; i < m; i++) {
-            M[i] = 0; // Standard for java.
-        }
+        // Standard for java.
 
         // for i:=1 to n do
         //     j := f(y[i])
@@ -53,7 +39,8 @@ public class Main {
         while (input.hasNextInt()) {
             int yi = input.nextInt();
             int j = f(yi);
-            M[j] = Math.max(M[j], rho(h(yi)));
+
+            M[j] = Math.max(M[j], Integer.numberOfLeadingZeros(h(yi)) + 1);
         }
 
         // Z := 1/(2^(-M[0])+...+2^(-M[m-1]))
@@ -82,6 +69,7 @@ public class Main {
         int res = 0;
         for (int i = 0; i < BITS; i++) {
             res += (Integer.bitCount(a[i] & x) & 1) << (31 - i);
+            if (res > 0) return res;
         }
         return res;
     }

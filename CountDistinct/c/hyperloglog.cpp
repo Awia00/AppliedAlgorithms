@@ -27,7 +27,7 @@ double hyperLogLog(int m) {
 
     // for i:=0 to m-1 do M[i]:=0
     for (int i = 0; i < m; i++) {
-        M[i] = 0; // Standard for java.
+        M[i] = 0;
     }
 
     // for i:=1 to n do
@@ -38,7 +38,7 @@ double hyperLogLog(int m) {
         for (string line; getline(cin, line);) {
             int yi = stoi(line);
             int j = f(yi);
-            M[j] = max(M[j], rho(h(yi)));
+            M[j] = max(M[j], __builtin_clz(h(yi)) + 1);
         }
     }
     catch (const invalid_argument& ia) {

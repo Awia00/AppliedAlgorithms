@@ -181,3 +181,5 @@ ed
 edN
 EditDistance/.vscode/
 .vscode/
+CountDistinct/c/hash
+CountDistinct/c/hyperloglog
