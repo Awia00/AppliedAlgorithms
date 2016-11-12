@@ -48,7 +48,10 @@ int h(int x)
     int r = 0;
     for(int i = 0; i < BIT_AMT; i++)
     {
-        r += (__builtin_popcount(A[i] & x) & 1) << (BIT_AMT-i-1);
+        int hash = (__builtin_popcount(A[i] & x) & 1);
+        r += hash << (BIT_AMT-i-1);
+        if(hash)
+            return r;
     }
     return r;
 }
@@ -102,7 +105,7 @@ int main(int argc, char **argv) {
         printf("%s\n","below");
     else
         printf("%s\n","above");
-    return 0;
+    return !exit;
 }
 
 // int main(int argc, char **argv) {
