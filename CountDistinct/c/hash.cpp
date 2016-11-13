@@ -6,12 +6,9 @@
 using namespace std;
 
 int main() {
-    try {
-        for (string line; getline(cin, line);) {
-                cout << h(stoi(line)) << endl;
-        }
-    } catch (const invalid_argument& ia) {
-        return 0;
+    int number;
+    while (scanf("%d", &number) == 1) {
+        cout << h(number) << endl;
     }
     return 0;
 }
