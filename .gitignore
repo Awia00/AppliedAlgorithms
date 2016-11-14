@@ -183,3 +183,4 @@ EditDistance/.vscode/
 .vscode/
 CountDistinct/c/hash
 CountDistinct/c/hyperloglog
+CountDistinct/c/histogram
