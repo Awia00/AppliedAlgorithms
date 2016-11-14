@@ -10,19 +10,20 @@ const unsigned int a[] = {
 int h(int x) {
     int res = 0;
     for (int i = 0; i < BITS; i++) {
-        res += (__builtin_popcount(a[i] & x) & 1) << (BITS - i - 1);
+        if (__builtin_popcount(a[i] & x) & 1) {
+            res |= (1 << (BITS - i - 1));
+        }
     }
     return res;
 }
 
 int h_first(int x) {
-    int res = 0;
+    int res = 1;
     for (int i = 0; i < BITS; i++) {
-        if ((__builtin_popcount(a[i] & x) & 1) << (BITS - i - 1)) {
-            res++;
-        } else {
+        if (!(__builtin_popcount(a[i] & x) & 1)) {
             break;
         }
+        res++;
     }
     return res;
 }
