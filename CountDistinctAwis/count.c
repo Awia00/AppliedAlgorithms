@@ -60,12 +60,32 @@ int heuristic_hash(int x) {
 double hyperloglog(int m)
 {
     int* M = (int*)calloc(m, sizeof(int));
-    int input;
-    while(scanf("%d", &input) == 1)
+    static int input[4];
+    while(scanf("%d%d%d%d", input, input + 1, input + 2, input + 3) >= 1)
     {
-        int j = heuristic_hash(input);
+        int j = heuristic_hash(input[0]);
         // int new = __builtin_clz(gf2_hash_opt(input)) + 1;
-        int new = gf2_hash_count(input);
+        int new = gf2_hash_count(input[0]);
+        if(M[j] < new)
+        {
+            M[j] = new;
+        }
+
+        j = heuristic_hash(input[1]);
+        new = gf2_hash_count(input[1]);
+        if(M[j] < new)
+        {
+            M[j] = new;
+        }
+        j = heuristic_hash(input[2]);
+        new = gf2_hash_count(input[2]);
+        if(M[j] < new)
+        {
+            M[j] = new;
+        }
+
+        j = heuristic_hash(input[3]);
+        new = gf2_hash_count(input[3]);
         if(M[j] < new)
         {
             M[j] = new;
@@ -110,7 +130,7 @@ int question3()
 {
     int threshold;
     int exit = scanf("%d", &threshold);
-    double result = hyperloglog(1024);
+    double result = hyperloglog(1024); // 936
     if (result < threshold) 
         printf("%s\n","below");
     else
