@@ -14,6 +14,19 @@ const unsigned int A[] = {
     0xef785119,    0xc9f0b067,    0x1e7dde42,    0xdda4a7b2,
     0x1a1c2640,    0x297c0633,    0x744edb48,    0x19adce93}; 
 
+//
+int gf2_hash_count(int x)
+{
+    int r = 0;
+    for(int i = 0; i < BIT_AMT; i++)
+    {
+        r++;
+        if(__builtin_popcount(A[i] & x) & 1) // the first 1 has been found no reason to calculate the rest
+            return r;
+    }
+    return r;
+}
+
 // h
 int gf2_hash_opt(int x)
 {
@@ -48,32 +61,34 @@ double hyperloglog(int m)
 {
     int* M = (int*)calloc(m, sizeof(int));
     int input;
-    int exit = scanf("%d", &input);
-    while(exit == 1)
+    while(scanf("%d", &input) == 1)
     {
         int j = heuristic_hash(input);
-        int new = __builtin_clz(gf2_hash_opt(input)) + 1;
+        // int new = __builtin_clz(gf2_hash_opt(input)) + 1;
+        int new = gf2_hash_count(input);
         if(M[j] < new)
         {
             M[j] = new;
         }
-        exit = scanf("%d", &input);
     }
 
     double Z = 0;
     double V = 0;
     for (int i = 0; i < m; i++) {
-        Z += pow(2, -M[i]);
+        
         if (M[i] == 0) 
         {
             V++;
+            Z++;
+        } else {
+            Z += pow(2.0, -M[i]);
         }
     }
     Z = 1/Z;
 
-    double E = m*m*Z*0.7213 / (1 + 1.079/m);
+    double E = m*m*Z*0.7213 / (1.0 + 1.079/m);
 
-    if (E < 2.5*m && V > 0) {
+    if (E < 2.5*m && V > 0.0) {
         E = m * log(m/V);
     }
 
@@ -83,14 +98,12 @@ double hyperloglog(int m)
 int question1()
 {
     int input;
-    int exit = scanf("%d", &input);
-    while(exit == 1)
+    while(scanf("%d", &input) == 1)
     {
         int j = gf2_hash(input);
         printf("%d\n", j);
-        exit = scanf("%d", &input);
     }
-    return !exit;
+    return 0;
 }
 
 int question3()
