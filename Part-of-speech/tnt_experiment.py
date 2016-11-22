@@ -1,8 +1,11 @@
 import sys
+import subprocess
 from itertools import izip
 from collections import defaultdict
 
-tags = ["ADJ", "NOUN", "PROPN", "VERB"]
+
+TAGS = ["ADJ", "NOUN", "PROPN", "VERB"]
+
 
 def get_precision_and_recall(s_data, g_data, tag):
     """
@@ -96,16 +99,15 @@ def load_tagged_file(filename):
     return sentences, unique_words
 
 
-def print_stats():
+def print_stats(partition, langs):
     """
-    Starts the program
+    Prints the stats of a specific partition of data
     """
-    langs = ["es", "et", "fi", "nl", "no"]
     data = {}
     for lang in langs:
-        training, lexicon = load_tagged_file("data/{}.train".format(lang))
-        test, _ = load_tagged_file("data/{}.test".format(lang))
-        tagged, _ = load_tagged_file("data/{}.test.tagged".format(lang))
+        training, lexicon = load_tagged_file("data/{}/{}.train".format(partition, lang))
+        test, _ = load_tagged_file("data/{}/{}.test".format(partition, lang))
+        tagged, _ = load_tagged_file("data/{}/{}.test.tagged".format(partition, lang))
         data[lang] = (lexicon, training, test, tagged)
 
     # Basic stats
@@ -144,7 +146,7 @@ def print_stats():
     print "\t{}\t{}\t{}".format("tag", "precision", "recall")
     for lang in langs:
         print lang
-        for tag in tags:
+        for tag in TAGS:
             precision, recall = get_precision_and_recall(data[lang][3], data[lang][2], tag)
             precisions[lang][tag] = round(precision * 100, 2)
             recalls[lang][tag] = round(recall * 100, 2)
@@ -152,11 +154,21 @@ def print_stats():
 
 
 def main():
+    """
+    Main loop
+    """
+    partitions = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+    langs = ["es", "et", "fi", "nl", "no"]
+
     # partition training
+        # subprocess.call(['tnt-para', 'parameter', 'parameter'])
+    for lang in langs:
+        subprocess.call('tnt-para', '-o models/${}'.format(lang), 'data/${}.train'.format(lang))
     # create models
     # created the tagged files
     # print stats
-    print_stats()
+    for partition in partitions:
+        print_stats(partition, langs)
 
 if __name__ == '__main__':
     main()
