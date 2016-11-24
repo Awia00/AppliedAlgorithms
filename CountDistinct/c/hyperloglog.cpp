@@ -7,18 +7,34 @@ using namespace std;
 
 double hyperLogLog(int m) {
     // for i:=0 to m-1 do M[i]:=0
-    int *M = new int[m];
+    unsigned char *M = new unsigned char[m];
 
     // for i:=1 to n do
     //     j := f(y[i])
     //     M[j] := max(M[j],rho(h(y[i])))
     // end
-    int yi, j, count;
+    int ya, yb, yc, yd, j;
+    unsigned char count;
 
     try {
-        while (cin >> yi) {
-            j = f(yi);
-            count = h_first(yi);
+        while (cin >> ya >> yb >> yc >> yd) {
+            j = f(ya);
+            count = h_first(ya);
+            if (M[j] < count) {
+                M[j] = count;
+            }
+            j = f(yb);
+            count = h_first(yb);
+            if (M[j] < count) {
+                M[j] = count;
+            }
+            j = f(yc);
+            count = h_first(yc);
+            if (M[j] < count) {
+                M[j] = count;
+            }
+            j = f(yd);
+            count = h_first(yd);
             if (M[j] < count) {
                 M[j] = count;
             }

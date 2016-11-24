@@ -7,9 +7,14 @@ using namespace std;
 
 int main() {
     std::ios::sync_with_stdio(false);
-    int number;
-    while (cin >> number) {
-        cout << h(number) << endl;
+    int na, nb;
+    try {
+        while (cin >> na >> nb) {
+            cout << h(na) << endl;
+            cout << h(nb) << endl;
+        }
+    } catch (const invalid_argument& ia) {
+        // ignore
     }
     return 0;
 }

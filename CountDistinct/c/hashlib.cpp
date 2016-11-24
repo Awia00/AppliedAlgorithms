@@ -17,7 +17,7 @@ int h(int x) {
     return res;
 }
 
-int h_first(int x) {
+unsigned char h_first(int x) {
     int res = 1;
     for (int i = 0; i < BITS; i++) {
         if (!(__builtin_popcount(a[i] & x) & 1)) {
