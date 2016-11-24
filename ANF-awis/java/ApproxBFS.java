@@ -55,31 +55,28 @@ public class ApproxBFS {
         while(input.hasNextLine())
         {
             String line = input.nextLine();
-            if(line.startsWith("//")) line = input.nextLine();
-            List<Integer> line1 = Arrays.stream(line.split(" ")).map((String s) -> Integer.parseInt(s)).collect(Collectors.toList());
-            List<Integer> line2 = Arrays.stream(input.nextLine().split(" ")).map((String s) -> Integer.parseInt(s)).collect(Collectors.toList());
-            ApproxSet a = new ApproxSet();
-            ApproxSet b = new ApproxSet();
-            for(int i = 0; i<line1.size(); i++)
+            if(line.startsWith("/")) line = input.nextLine();
+            String[] line1 = line.split(" "), line2 = input.nextLine().split(" ");
+            ApproxSet a = new ApproxSet(), b = new ApproxSet();;
+            for(int i = 0; i<line1.length; i++)
             {
-                a.add(line1.get(i));
+                a.add(line1[i]);
             }
-            for(int i = 0; i<line2.size(); i++)
+            for(int i = 0; i<line2.length; i++)
             {
-                b.add(line2.get(i));
+                b.add(line2[i]);
             }
-            double estimateA = a.sizeEstimate();
-            double estimateB = b.sizeEstimate();
+            double eA = a.sizeEstimate(), eB = b.sizeEstimate();
             a.addSet(b);
-            double estimateC = a.sizeEstimate();
-
-            if((estimateC-estimateA)/estimateC <= 0.2)
-            {
-                System.out.println("almost disjoint");
-            }
-            else if((estimateC-estimateA)/estimateC >= 0.8)
+            double eC = a.sizeEstimate(), result = eC/((eA+eB)/2)-1;
+			//System.out.println("a: "+ eA + " b: " + eB + " c: " + eC + " res: " + result);
+            if(result <= 0.2)
             {
                 System.out.println("almost same");
+            }
+            else if(result >= 0.8)
+            {
+                System.out.println("almost disjoint");
             }
         }
     }
