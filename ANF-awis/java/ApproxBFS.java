@@ -73,11 +73,11 @@ public class ApproxBFS {
             a.addSet(b);
             double estimateC = a.sizeEstimate();
 
-            if(estimateC/estimateA-1 <= 0.2)
+            if((estimateC-estimateA)/estimateC <= 0.2)
             {
                 System.out.println("almost disjoint");
             }
-            else if(estimateC/estimateA-1 >= 0.8)
+            else if((estimateC-estimateA)/estimateC >= 0.8)
             {
                 System.out.println("almost same");
             }
