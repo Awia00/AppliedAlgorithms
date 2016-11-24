@@ -56,42 +56,42 @@ int gf2_hash(int x)
 int heuristic_hash(int x) { 
     return ((x*0Xbc164501) & 0X7fe00000) >> 21;
 }
+int heuristic_hash_2(int x) { 
+    int res = 0;
+    for (int i = 0; i<BIT_AMT; i++) {
+        res = (res << 1) + (__builtin_popcount(A[i] & x) & 1);
+    }
+    return res;
+}
 
-double hyperloglog(int m)
+unsigned char* calculate_hash_set(int m)
 {
     unsigned char* M = (unsigned char*)calloc(m, sizeof(unsigned char));
-    static int input[4];
-    while(scanf("%d%d%d%d", input, input + 1, input + 2, input + 3) >= 1)
+    static int input;
+    while(scanf("%d", &input) >= 1)
     {
-        int j = heuristic_hash(input[0]);
+        int j = heuristic_hash(input);
         // int new = __builtin_clz(gf2_hash_opt(input)) + 1;
-        int new = gf2_hash_count(input[0]);
-        if(M[j] < new)
-        {
-            M[j] = new;
-        }
-
-        j = heuristic_hash(input[1]);
-        new = gf2_hash_count(input[1]);
-        if(M[j] < new)
-        {
-            M[j] = new;
-        }
-        j = heuristic_hash(input[2]);
-        new = gf2_hash_count(input[2]);
-        if(M[j] < new)
-        {
-            M[j] = new;
-        }
-
-        j = heuristic_hash(input[3]);
-        new = gf2_hash_count(input[3]);
+        int new = gf2_hash_count(input);
         if(M[j] < new)
         {
             M[j] = new;
         }
     }
+    return M;
+}
 
+unsigned char* approx_union(unsigned char* a, unsigned char* b, int m)
+{
+    for(int i = 0; i<m; i++)
+    {
+        if(b[i] > a[i]) a[i] = b[i];
+    }
+    return a;
+}
+
+double approximate_count(unsigned char* M, int m)
+{
     double Z = 0;
     double V = 0;
     for (int i = 0; i < m; i++) {
@@ -114,6 +114,14 @@ double hyperloglog(int m)
 
     return E;
 }
+
+double hyperloglog(int m)
+{
+    unsigned char* M = calculate_hash_set(m);
+    return approximate_count(M, m);
+}
+
+
 
 int question1()
 {

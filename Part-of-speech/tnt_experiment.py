@@ -3,6 +3,7 @@ import subprocess
 
 
 TAGS = ["ADJ", "NOUN", "PROPN", "VERB"]
+ACCURACIES = {}
 
 
 def get_precision_and_recall(s_data, g_data, tag):
@@ -14,7 +15,7 @@ def get_precision_and_recall(s_data, g_data, tag):
     true_negatives = 0
     false_positives = 0
     false_negatives = 0
-    correct = 0
+    # correct = 0
     for s_sent, g_sent in zip(s_data, g_data):
         for (_, s_tag), (_, g_tag) in zip(s_sent, g_sent):
             if tag == s_tag:  # system predicts tag...
@@ -34,7 +35,7 @@ def get_precision_and_recall(s_data, g_data, tag):
 
     if true_positives + false_negatives > 0:
         recall = true_positives/float((true_positives + false_negatives))
-    
+
     return precision, recall
 
 def amt_unknowns(lexicon, test):
@@ -116,15 +117,15 @@ def print_stats(partition, langs):
         data[lang] = (lexicon, training, test, tagged)
 
     # Basic stats
-    format_string = "{:2}\t{}\t{}\t{}\t{}\t{}\t{:22}\t{}"
+    format_string = "{:2}\t{}\t{}\t{}\t{}\t{}\t{:24}\t{}"
     print format_string.format(
         "lang",
         "#unique",
         "#train",
         "#test",
         "#tagged",
-        "%acc",
-        "%acc known / unknown",
+        "%accuracy",
+        "%acc known\t%acc unknown",
         "%unknowns")
     for lang, datasets in data.items():
         unique_train = len(datasets[0])
@@ -140,18 +141,18 @@ def print_stats(partition, langs):
             words_train,
             words_test,
             words_tagged,
-            accuracy,
-            "{:.8f} / {:.8f}".format(accuracy_ku[0], accuracy_ku[1]),
+            "{:.8f}".format(accuracy),
+            "{:.8f}\t{:.8f}".format(accuracy_ku[0], accuracy_ku[1]),
             unknowns)
+        ACCURACIES[(partition, lang)] = accuracy
 
 
     print
-    print "\t{}\t{}\t{}".format("tag", "precision", "recall")
+    print "{:2}\t{}\t{}\t{}".format("ln", "tag", "precision", "recall")
     for lang in langs:
-        print lang
         for tag in TAGS:
             precision, recall = get_precision_and_recall(data[lang][3], data[lang][2], tag)
-            print "\t{}\t{}\t{}".format(tag, precision, recall)
+            print "{:2}\t{}\t{}\t{}".format(lang, tag, precision, recall)
 
 
 def main():
@@ -164,6 +165,11 @@ def main():
     for partition in partitions:
         print "<========== {}% ==========>".format(partition)
         print_stats(partition, langs)
+
+    print "\n"
+    for lang in langs:
+        for partition in partitions:
+            print partition + "\t " + ACCURACIES[(partition, lang)]
 
 if __name__ == '__main__':
     main()
