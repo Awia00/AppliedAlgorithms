@@ -68,15 +68,15 @@ public class ApproxBFS {
             }
             double eA = a.sizeEstimate(), eB = b.sizeEstimate();
             a.addSet(b);
-            double eC = a.sizeEstimate(), result = eC/((eA+eB)/2)-1;
+            double eC = a.sizeEstimate(), result = (eA+eB-eC)/eC;
 			//System.out.println("a: "+ eA + " b: " + eB + " c: " + eC + " res: " + result);
             if(result <= 0.2)
             {
-                System.out.println("almost same");
+                System.out.println("almost disjoint");
             }
             else if(result >= 0.8)
             {
-                System.out.println("almost disjoint");
+                System.out.println("almost same");
             }
         }
     }
