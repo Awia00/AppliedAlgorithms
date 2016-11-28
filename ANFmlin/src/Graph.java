@@ -1,15 +1,18 @@
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Graph<T> {
-    private Map<T,Set<T>> graph = new HashMap<>();
+    private Map<T,Collection<T>> graph = new HashMap<>();
 
-    public Iterable<T> get(T key) {
-        return Collections.unmodifiableSet(graph.get(key));
+    public Collection<T> get(T key) {
+        return graph.get(key);
     }
 
     public void addEdge(T first, T second) {
-        if (!graph.containsKey(first)) graph.put(first, new HashSet<>());
-        if (!graph.containsKey(second)) graph.put(second, new HashSet<>());
+        graph.putIfAbsent(first, new ArrayList<>());
+        graph.putIfAbsent(second, new ArrayList<>());
         graph.get(first).add(second);
         graph.get(second).add(first);
     }
@@ -18,7 +21,7 @@ public class Graph<T> {
         return graph.size();
     }
 
-    public Iterable<T> getVertices() {
-        return Collections.unmodifiableSet(graph.keySet());
+    public Collection<T> getVertices() {
+        return graph.keySet();
     }
 }
