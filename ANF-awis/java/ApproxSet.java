@@ -14,7 +14,8 @@ public class ApproxSet {
 	{
 		for(int i = 0; i<M.length; i++)
 		{
-			if (a.M[i] > M[i]) M[i] = a.M[i];
+			if (a.M[i] > M[i]) 
+				M[i] = a.M[i];
 		}
 	}
 

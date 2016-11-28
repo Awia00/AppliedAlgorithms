@@ -25,6 +25,12 @@ public class ApproxBFS {
 				n.add(a);
 				c.put(a, n);
 			}
+			if(!c.containsKey(b))
+			{
+				ApproxSet n = new ApproxSet();
+				n.add(b);
+				c.put(b, n);
+			}
 			if(!friends.containsKey(a))
 			{
 				List<Integer> n = new ArrayList<>();
@@ -42,13 +48,16 @@ public class ApproxBFS {
 		}
 		int d = 0;
 		double reach;
+		
 		do
 		{
 			reach = 0;
+			
 			Map<Integer, ApproxSet> m = new HashMap<>();
 			for(Integer key : c.keySet())
 			{
 				ApproxSet n = new ApproxSet();
+				n.addSet(c.get(key));
 				for(Integer friend : friends.get(key))
 				{
 					n.addSet(c.get(friend));
