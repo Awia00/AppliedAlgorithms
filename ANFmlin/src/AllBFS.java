@@ -1,4 +1,4 @@
-/**
+/*
  * Compute array where n[i] is number of ordered vertex pairs (v1, v2) at distance i
  * Takes undirected graph input from stdin with one edge per line: "nodeID1 nodeID2"
  * @author Rasmus Pagh
@@ -21,9 +21,9 @@ public class AllBFS {
 			String line = input.nextLine();
 			String a = line.split(" ")[0];
 			String b = line.split(" ")[1];
-			if (graph.get(a) == null) graph.put(a,new HashSet<String>());
+			graph.putIfAbsent(a, new HashSet<>());
 			graph.get(a).add(b);
-			if (graph.get(b) == null) graph.put(b,new HashSet<String>());
+			graph.putIfAbsent(b, new HashSet<>());
 			graph.get(b).add(a);
 		}
 	}
