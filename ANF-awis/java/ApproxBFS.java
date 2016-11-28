@@ -14,31 +14,31 @@ public class ApproxBFS {
 	public static void question3()
 	{
 		Scanner input = new Scanner(System.in);
-		Map<Integer, ApproxSet> c = new HashMap<>();
-		Map<Integer, List<Integer>> friends = new HashMap<>();
+		HashMap<Integer, ApproxSet> c = new HashMap<>();
+		HashMap<Integer, HashSet<Integer>> friends = new HashMap<>();
 		while(input.hasNextLine())
 		{
-			int a = input.nextInt(), b = input.nextInt();
+			Integer a = input.nextInt(), b = input.nextInt();
 			if(!c.containsKey(a))
 			{
 				ApproxSet n = new ApproxSet();
-				n.add(a);
+				n.add(a.toString());
 				c.put(a, n);
 			}
 			if(!c.containsKey(b))
 			{
 				ApproxSet n = new ApproxSet();
-				n.add(b);
+				n.add(b.toString());
 				c.put(b, n);
 			}
 			if(!friends.containsKey(a))
 			{
-				List<Integer> n = new ArrayList<>();
+				HashSet<Integer> n = new HashSet<>();
 				friends.put(a,n);
 			}
 			if(!friends.containsKey(b))
 			{
-				List<Integer> n = new ArrayList<>();
+				HashSet<Integer> n = new HashSet<>();
 				friends.put(b,n);
 			}
 			friends.get(a).add(b);
@@ -47,13 +47,13 @@ public class ApproxBFS {
 			input.nextLine();
 		}
 		int d = 0;
-		double reach;
-		
+		long reach;
+		long limit = ((long) c.size()) * c.size() / 2L;
+		Map<Integer, ApproxSet> m = new HashMap<>();
 		do
 		{
 			reach = 0;
 			
-			Map<Integer, ApproxSet> m = new HashMap<>();
 			for(Integer key : c.keySet())
 			{
 				ApproxSet n = new ApproxSet();
@@ -70,8 +70,9 @@ public class ApproxBFS {
 				c.put(key, m.get(key));
 			}
 			d++;
+			
 			//System.out.println(reach);
-		}while(reach < c.size()*c.size() / 2);
+		}while(reach < limit);
 		System.out.println(d);
 	}
 
