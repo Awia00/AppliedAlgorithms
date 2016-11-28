@@ -52,12 +52,14 @@ public class ApproxBFS {
     public static void question1()
     {
         Scanner input = new Scanner(System.in);
-        while(input.hasNextLine())
-        {
+        // while(input.hasNextLine())
+        // {
             String line = input.nextLine();
             if(line.startsWith("/")) line = input.nextLine();
-            String[] line1 = line.split(" "), line2 = input.nextLine().split(" ");
-            ApproxSet a = new ApproxSet(), b = new ApproxSet();;
+            String[] line1 = 
+				line.split(" "), 
+				line2 = input.nextLine().split(" ");
+            ApproxSet a = new ApproxSet(), b = new ApproxSet();
             for(int i = 0; i<line1.length; i++)
             {
                 a.add(line1[i]);
@@ -70,15 +72,15 @@ public class ApproxBFS {
             a.addSet(b);
             double eC = a.sizeEstimate(), result = (eA+eB-eC)/eC;
 			//System.out.println("a: "+ eA + " b: " + eB + " c: " + eC + " res: " + result);
-            if(result <= 0.2)
+            if(result <= 0.4)
             {
                 System.out.println("almost disjoint");
             }
-            else if(result >= 0.8)
+            else if(result >= 0.5)
             {
                 System.out.println("almost same");
             }
-        }
+        // }
     }
 
 	public static void main(String[] args) {
