@@ -24,13 +24,13 @@ public class HyperANF {
 
         // d := 0
         int d = 0;
-        final long limit = ((long) g.size()) * g.size() / 2L;
-        long[] reach = new long[1];
+        final long limit = ((long) g.size()) * g.size() >> 1;
+        long reach;
         boolean swapped = false;
         // repeat
         do {
             // reach := 0
-            reach[0] = 0;
+            reach = 0;
 
             final Map<String, ApproxSet<String>> cc = swapped ? m : c;
             final Map<String, ApproxSet<String>> mm = swapped ? c : m;
@@ -50,7 +50,7 @@ public class HyperANF {
                 }
 
                 // reach := reach + size estimate from m[v]
-                reach[0] += n.sizeEstimate();
+                reach += n.sizeEstimate();
             // end
             }
 
@@ -63,7 +63,7 @@ public class HyperANF {
             d++;
 
             // until reach >= |V|^2 / 2
-        } while (reach[0] < limit);
+        } while (reach < limit);
 
         // return d
         return d;

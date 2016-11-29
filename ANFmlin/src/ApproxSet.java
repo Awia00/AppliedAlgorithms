@@ -32,7 +32,7 @@ public final class ApproxSet<T> {
         double wsum = 0;
         int zerosum = 0;
         for (int j = 0; j < m; j++) {
-            wsum += Math.pow(2.0, -M[j]);
+            wsum += 2.0 / (2 << M[j]);
             if (M[j] == 0) zerosum++;
         }
         double Z = 1 / wsum;
@@ -43,8 +43,8 @@ public final class ApproxSet<T> {
     }
 
     public final void addSet(ApproxSet a) {
-        for (int i = 0; i < M.length/16; i++) {
-            max16(a.M, i*16);
+        for (int i = 0; i < M.length >> 4; i++) {
+            max16(a.M, i << 4);
         }
     }
 
