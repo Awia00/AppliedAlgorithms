@@ -6,9 +6,9 @@
 
 public class ApproxSet {
 
-	private static int logm = 10;
-	private static int m = 1<<logm;
-	private byte[] M = new byte[m];
+	private final static int logm = 10;
+	private final static int m = 1<<logm;
+	private final byte[] M = new byte[m];
 
 	public void addSet(ApproxSet a)
 	{
@@ -32,7 +32,7 @@ public class ApproxSet {
 		double wsum = 0;
 		int zerosum = 0;
 		for (int j=0; j<m; j++) {
-			wsum += Math.pow(2.0,-M[j]);
+			wsum += 2.0/(2 << M[j]);
 			if (M[j]==0) zerosum++;
 		}
 		double Z = 1/wsum;
