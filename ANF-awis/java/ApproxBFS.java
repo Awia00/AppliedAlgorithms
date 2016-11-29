@@ -11,11 +11,11 @@ import java.util.stream.*;
 
 public class ApproxBFS {
 
-	public static void question3()
+	public static int question3()
 	{
 		Scanner input = new Scanner(System.in);
-		HashMap<Integer, ApproxSet> c = new HashMap<>();
-		HashMap<Integer, HashSet<Integer>> friends = new HashMap<>();
+		HashMap<Integer, ApproxSet> c = new HashMap<>(2048);
+		HashMap<Integer, HashSet<Integer>> friends = new HashMap<>(2048);
 		while(input.hasNextLine())
 		{
 			Integer a = input.nextInt(), b = input.nextInt();
@@ -49,7 +49,7 @@ public class ApproxBFS {
 		int d = 0;
 		long reach;
 		long limit = ((long) c.size()) * c.size() / 2L;
-		Map<Integer, ApproxSet> m = new HashMap<>();
+		Map<Integer, ApproxSet> m = new HashMap<>(2048);
 		do
 		{
 			reach = 0;
@@ -64,6 +64,7 @@ public class ApproxBFS {
 				}
 				m.put(key, n);
 				reach += n.sizeEstimate();
+				//if(reach > limit) return d+1;
 			}
 			for(Integer key : c.keySet())
 			{
@@ -73,10 +74,10 @@ public class ApproxBFS {
 			
 			//System.out.println(reach);
 		}while(reach < limit);
-		System.out.println(d);
+		return d;
 	}
 
-    public static void question1()
+    public static String question1()
     {
         Scanner input = new Scanner(System.in);
         // while(input.hasNextLine())
@@ -98,17 +99,18 @@ public class ApproxBFS {
 			//System.out.println("a: "+ eA + " b: " + eB + " c: " + eC + " res: " + result);
             if(result <= 0.4)
             {
-                System.out.println("almost disjoint");
+                return "almost disjoint";
             }
             else if(result >= 0.5)
             {
-                System.out.println("almost same");
+                return "almost same";
             }
+			return "";
         // }
     }
 
 	public static void main(String[] args) {
-		//question1();
-		question3();
+		//System.out.println(question1());
+		System.out.println(question3());
 	}
 }
