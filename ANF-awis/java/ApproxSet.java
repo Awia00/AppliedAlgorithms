@@ -6,7 +6,7 @@
 
 public class ApproxSet {
 
-	private final static int logm = 10;
+	private final static int logm = 4;
 	private final static int m = 1<<logm;
 	private final byte[] M = new byte[m];
 
@@ -22,8 +22,8 @@ public class ApproxSet {
 	public void add(Object x) {
 		int xh = x.hashCode();
 		if (xh!=0) {
-			int i = LinearHash.f(xh,logm);
-			byte val = (byte)ExpHash.hash(xh);
+			int i = Hasher.f(xh,logm);
+			byte val = (byte)Hasher.hash(xh);
 			if (val>M[i]) M[i]=val;
 		}
 	}
