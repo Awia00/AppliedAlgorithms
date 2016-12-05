@@ -15,28 +15,29 @@ class element {
         }
 };
 
+void print(element x) {
+#ifndef CODEJUDGE
+    cout << x.key << " " << x.value << endl;
+#else
+    cout << x.value << endl;
+#endif
+}
+
 void pqsort() {
     auto cmpKey = [](const element a, const element b) { return b.key < a.key; };
 
     std::priority_queue<element, std::vector<element>, decltype(cmpKey)> pq(cmpKey);
 
-    int number;
+    int number, key, value;
     cin >> number;
 
-    int key, value;
     for(int i = 0; i < number; i++) {
-        cin >> key; cin >> value;
-
+        cin >> key >> value;
         pq.emplace(key, value);
     }
 
     for(int i = 0; i < number; i++) {
-        element x = pq.top();
-#ifndef CODEJUDGE
-        cout << x.key << " " << x.value << endl;
-#else
-        cout << x.value << endl;
-#endif
+        print(pq.top());
         pq.pop();
     }
 }
@@ -44,13 +45,12 @@ void pqsort() {
 void stdsort() {
     auto cmpKey = [](const element a, const element b) { return b.key > a.key; };
 
-    int number;
+    int number, key, value;
     cin >> number;
 
     vector<element> myVector;
     myVector.reserve(number);
 
-    int key, value;
     for(int i = 0; i < number; i++) {
         cin >> key >> value;
         myVector.emplace_back(key, value);
@@ -58,15 +58,12 @@ void stdsort() {
     sort(myVector.begin(), myVector.end(), cmpKey);
 
     for(element x : myVector) {
-#ifndef CODEJUDGE
-        cout << x.key << " " << x.value << endl;
-#else
-        cout << x.value << endl;
-#endif
+        print(x);
     }
 }
 
 int main(int argc, char** argv) {
+    ios_base::sync_with_stdio(false);
     if (argc == 1) {
         //pqsort();
         stdsort();
