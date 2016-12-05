@@ -16,14 +16,17 @@ const auto cmpLambda =
 
 void pqsort()
 {
+    int n;
+    cin >> n;
+
+    vector<keyvalue> keyValueVector;
+    keyValueVector.reserve(n);
     priority_queue<
         keyvalue, vector<keyvalue>,
         decltype(cmpLambda)>
-        pq(cmpLambda);
+        pq(cmpLambda, move(keyValueVector));
 
-    int n, k, v;
-    cin >> n;
-    
+    int k, v;
     for(int i = 0; i<n; i++)
     {
         cin>>k;
