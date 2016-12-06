@@ -1,0 +1,13 @@
+Size 1000		./pqsort > /dev/null  	0.00s 	user 0.02s 	system 99% 	cpu 	0.016 	total
+Size 2000		./pqsort > /dev/null  	0.02s 	user 0.00s 	system 99% 	cpu 	0.016 	total
+Size 4000		./pqsort > /dev/null  	0.02s 	user 0.02s 	system 82% 	cpu 	0.038 	total
+Size 8000		./pqsort > /dev/null  	0.05s 	user 0.00s 	system 124%	cpu 	0.038 	total
+Size 16000		./pqsort > /dev/null  	0.06s 	user 0.02s 	system 99% 	cpu 	0.078 	total
+Size 32000		./pqsort > /dev/null  	0.11s 	user 0.05s 	system 92% 	cpu 	0.169 	total
+Size 64000		./pqsort > /dev/null  	0.17s 	user 0.14s 	system 97% 	cpu 	0.319 	total
+Size 128000		./pqsort > /dev/null  	0.58s 	user 0.12s 	system 97% 	cpu 	0.718 	total
+Size 256000		./pqsort > /dev/null  	1.16s 	user 0.30s 	system 98% 	cpu 	1.470 	total
+Size 512000		./pqsort > /dev/null  	2.61s 	user 0.75s 	system 99% 	cpu 	3.365 	total
+Size 1024000	./pqsort > /dev/null  	6.08s 	user 1.28s 	system 99% 	cpu 	7.385 	total
+Size 2048000	./pqsort > /dev/null  	13.44s	user 2.80s 	system 100%	cpu 	16.228	total
+Size 4096000 	./pqsort > /dev/null  	29.62s 	user 5.55s 	system 99% 	cpu 	35.179 	total

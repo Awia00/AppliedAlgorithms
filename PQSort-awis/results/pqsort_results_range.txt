@@ -1,0 +1,7 @@
+range 10		./pqsort > /dev/null  5.91s 	user 	2.77s 	system 98% 	cpu 	8.799 	total
+range 100		./pqsort > /dev/null  6.88s 	user 	3.03s 	system 99% 	cpu 	9.909 	total
+range 1000		./pqsort > /dev/null  10.88s	user 	2.73s 	system 100%	cpu 	13.601	total
+range 10000		./pqsort > /dev/null  13.56s	user 	2.61s 	system 99% 	cpu 	16.183	total
+range 100000	./pqsort > /dev/null  14.98s	user 	2.67s 	system 99% 	cpu 	17.679	total
+range 1000000	./pqsort > /dev/null  15.73s	user 	2.88s 	system 100%	cpu 	18.602	total
+range 10000000	./pqsort > /dev/null  15.70s	user 	2.80s 	system 99% 	cpu 	18.505	total	

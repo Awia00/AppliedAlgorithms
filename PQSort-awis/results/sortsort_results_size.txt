@@ -1,0 +1,13 @@
+Size 1000	 ./sortsort > /dev/null  	0.00s 	user 	0.02s 	system 100%	cpu 	0.016 	total
+Size 2000	 ./sortsort > /dev/null  	0.00s 	user 	0.02s 	system 70% 	cpu 	0.022 	total
+Size 4000	 ./sortsort > /dev/null  	0.02s 	user 	0.00s 	system 70% 	cpu 	0.022 	total
+Size 8000	 ./sortsort > /dev/null  	0.02s 	user 	0.02s 	system 95% 	cpu 	0.033 	total
+Size 16000	 ./sortsort > /dev/null  	0.03s 	user 	0.05s 	system 113%	cpu 	0.069 	total
+Size 32000	 ./sortsort > /dev/null  	0.12s 	user 	0.02s 	system 97% 	cpu 	0.145 	total
+Size 64000	 ./sortsort > /dev/null  	0.12s 	user 	0.12s 	system 92% 	cpu 	0.270 	total
+Size 128000	 ./sortsort > /dev/null  	0.34s 	user 	0.17s 	system 95% 	cpu 	0.538 	total
+Size 256000	 ./sortsort > /dev/null  	0.62s 	user 	0.41s 	system 96% 	cpu 	1.072 	total
+Size 512000	 ./sortsort > /dev/null  	1.45s 	user 	0.59s 	system 99% 	cpu 	2.057 	total
+Size 1024000 ./sortsort > /dev/null  	2.92s 	user 	1.20s 	system 98% 	cpu 	4.169 	total
+Size 2048000 ./sortsort > /dev/null  	5.75s 	user 	2.61s 	system 99% 	cpu 	8.384 	total
+Size 4096000 ./sortsort > /dev/null  	11.41s 	user 	5.42s 	system 99% 	cpu 	16.875 	total

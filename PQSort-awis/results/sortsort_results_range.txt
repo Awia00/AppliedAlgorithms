@@ -1,0 +1,7 @@
+range 10		./sortsort > /dev/null  	4.77s 	user 	2.64s 	system 	96% 	cpu 	7.678 	total
+range 100		./sortsort > /dev/null  	5.22s 	user 	2.52s 	system 	97% 	cpu 	7.952 	total
+range 1000		./sortsort > /dev/null  	5.62s 	user 	2.34s 	system 	98% 	cpu 	8.122 	total
+range 10000		./sortsort > /dev/null  	5.69s 	user 	2.61s 	system 	99% 	cpu 	8.370 	total
+range 100000	./sortsort > /dev/null  	5.89s 	user 	2.66s 	system 	100% 	cpu 	8.546 	total
+range 1000000	./sortsort > /dev/null  	6.34s 	user 	2.62s 	system 	100% 	cpu 	8.966 	total
+range 10000000	./sortsort > /dev/null  	6.53s 	user 	2.59s 	system 	100% 	cpu 	9.124 	total
