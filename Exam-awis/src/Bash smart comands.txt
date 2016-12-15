@@ -1,0 +1,31 @@
+Get values from a text stream based on columns seperated by space
+cut -d' ' -f2,3,5
+
+get the line where this value is present
+grep value
+
+outputs to a file
+command > out.txt
+
+append to a file
+command >> out.txt 
+
+sort (-r flag for reverse)
+command | sort
+
+supress output
+command > /dev/null 
+
+time command
+time (command)
+
+Time the command and output only the timing
+{ time command > /dev/null } 2>> outfile
+
+pipe the timing of the result to another command
+{ time command > /dev/null } 2>&1 | grep pqsort
+
+
+example:
+{ time ./keyvalgen 200 200 200 | ./pqsort > /dev/null } 2>&1 | grep pqsort | cut -d' ' -f1,11
+prints: pqsort 0.016
