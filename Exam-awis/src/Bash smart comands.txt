@@ -29,3 +29,22 @@ pipe the timing of the result to another command
 example:
 { time ./keyvalgen 200 200 200 | ./pqsort > /dev/null } 2>&1 | grep pqsort | cut -d' ' -f1,11
 prints: pqsort 0.016
+
+
+
+loop printer alle fil navne ud
+for i in *
+	echo $i
+
+
+for i in 1 2 4 8 16 32 64 128 256 512 1024 2048 4096 8192
+	echo $i
+
+
+Example
+for i in 1000000 2000000 4000000
+	(echo -n $i " ";{ time ./keyvalgen $i 100 100 | ./pqsort > /dev/null } 2>&1 | grep sort | cut -d' ' -f1,5,7,11)
+
+1000000  ./pqsort 0.36s 0.06s 0.432
+2000000  ./pqsort 0.67s 0.23s 0.904
+4000000  ./pqsort 1.31s 0.52s 1.827
