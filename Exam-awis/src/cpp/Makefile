@@ -1,10 +1,10 @@
 CXXFLAGS = -O2 -Wall -std=c++11
-MAIN = main.cpp
+REPRESENTATION = representation.cpp
 
-default: main 
+default: representation 
 
-main: $(MAIN) 
+representation: $(REPRESENTATION) 
 
 clean:
-	$(RM) main
+	$(RM) representation
 

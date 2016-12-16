@@ -1,6 +1,15 @@
 \select@language {english}
 \contentsline {section}{Contents}{2}{section*.1}
-\contentsline {section}{\numberline {1}Question 1}{3}{section.1}
-\contentsline {section}{\numberline {2}Question 2}{3}{section.2}
-\contentsline {section}{\numberline {3}Question 3}{3}{section.3}
-\contentsline {section}{References}{3}{section*.2}
+\contentsline {section}{\numberline {1}Sum of Degrees Squared}{3}{section.1}
+\contentsline {subsection}{\numberline {1.1}Implement}{3}{subsection.1.1}
+\contentsline {subsection}{\numberline {1.2}Questions to discuss}{3}{subsection.1.2}
+\contentsline {subsubsection}{\numberline {1.2.1}Can you avoid a final scan over the array of degrees to compute the sum of the squares?}{3}{subsubsection.1.2.1}
+\contentsline {subsubsection}{\numberline {1.2.2}Assume you have a good implementation of the above algorithm that operates on the same huge graph where all edges are represented by $(u, v)$ with $u < v$. You observe a $40\%$ time difference between the following two representations: }{3}{subsubsection.1.2.2}
+\contentsline {subsection}{\numberline {1.3}Which model of computation could help quantify the phenomenon?}{3}{subsection.1.3}
+\contentsline {subsection}{\numberline {1.4} Assume that your code is supposed to be moved to a new computing platform, for which you want to quantify the above effect. Design a simple experiment in terms of its performance metric, parameters and factors.}{4}{subsection.1.4}
+\contentsline {section}{\numberline {2}Quality of Iterated Hashing}{4}{section.2}
+\contentsline {subsection}{\numberline {2.1}Implement}{4}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Plot}{5}{subsection.2.2}
+\contentsline {subsection}{\numberline {2.3}Implementation Question to discuss}{5}{subsection.2.3}
+\contentsline {section}{\numberline {3}Representatives}{6}{section.3}
+\contentsline {subsection}{\numberline {3.1}Implement}{6}{subsection.3.1}

@@ -1,9 +1,16 @@
-CFLAGS = -O2 -Wall -Wa,-q -g -std=c99
-MAIN = main.c
+CFLAGS = -O2 -Wall -Wa,-q -g -std=c99 -fopenmp
+SDS = sds.c
+HASH = hash.c
+REPRESENTATION = representation.c
 
-default: main 
 
-main: $(MAIN) 
+default: sds 
+
+sds: $(SDS)
+
+hash: $(HASH) 
+
+representation: $(REPRESENTATION) 
 
 clean:
-	$(RM) main
+	$(RM) sds hash

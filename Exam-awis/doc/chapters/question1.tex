@@ -1,2 +1,26 @@
 % !TeX spellcheck = en_GB
-\section{Question 1}
+\section{Sum of Degrees Squared} 
+\subsection{Implement}
+See \texttt{src/sdc.c}, method \texttt{question1} for the implementation.
+
+\subsection{Questions to discuss}
+\subsubsection{Can you avoid a final scan over the array of degrees to compute the sum of the squares?}
+Yes. Observe that the degree always increases with 1 every time it is seen in the input. Observe that the relation between the square of a number $i-1$ and $i$ is $i^2 == (i-1)^2 + i*2-1$. For example, the square root of $5$ is $25$, the square root of $6$ is $36$, following the formula we get, $36 == 25+6*2-1$.
+
+Therefore we can in one scan over the edges calculate the sum. See \texttt{src/sdc.c}, method \texttt{question1\_opt} for the solution.
+
+\subsubsection{Assume you have a good implementation of the above algorithm that operates on the same huge graph where all edges are represented by $(u, v)$ with $u < v$. You observe a $40\%$ time difference between the following two representations:
+}
+While reading the input, we access and modify an array of length $n$. In case (a) each access to the degree of vertex $u$ will most likely result in a cache miss, since there is little chance for it to be in the cache already, if we assume the size of the array is bigger than the size of the cache. Whereas in case(b) the degree of vertex $u$ will most likely already be in the cache, since vertices with lower $id$ or itself could have included it in their cache block. It is difficult to specify anything on $v$ since a vertex $u$ can have edges to random vertices in the graph, and therefore only a smaller speed-up by cache efficiency should be achievable by sorting on $u$ and then $v$.
+
+\subsection{Which model of computation could help quantify the phenomenon?}
+It would be the most useful to look at cache hits or cache misses to quantify the phenomenon.
+
+\subsection{ Assume that your code is supposed to be moved to a new computing platform, for which you	want to quantify the above effect. Design a simple experiment in terms of its performance metric, parameters and factors.}
+The goal of the experiment is to see if the \texttt{question1\_opt} is a factor of $40\%$ faster measured in running time in seconds, when the input is sorted by the first column, than when the input is randomized.
+
+The parameters of the experiment is, input size, and whether or not the input is sorted. The levels of the input size will be based on the doubling approach, with multiple other measurements taken around the factors of 2. By making multiple readings around powers of 2, it will be easier to visualize when the arrays fall out of the different cache levels.
+
+The factors is the range of numbers, the data type, which in this case is 32bit integers, the compiler and its flags, and the environment of the new computing platform.
+
+The type of the experiment will be a horse race, since we are trying to measure which of two algorithms will be the fastest.
