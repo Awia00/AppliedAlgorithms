@@ -15,15 +15,13 @@ class Interval{
 const auto cmpStartLambda = 
         [](const Interval a, const Interval b)
         {
-            if (b.start == a.start)
-                return a.id > b.id;
             return b.start > a.start;
         };
 
 const auto cmpEndLambda = 
         [](const Interval a, const Interval b)
         {
-            if (b.start == a.start)
+            if (b.end == a.end)
                 return a.id > b.id;
             return b.end < a.end;
         };
@@ -99,7 +97,7 @@ void pqsort()
     
     for(unsigned long i = 0; i<n; i++)
     {
-        cout << resultArr[i] << " ";
+        cout << resultArr[i] << endl;
     }
     cout << endl;
 }
